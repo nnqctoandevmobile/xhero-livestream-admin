@@ -1,34 +1,52 @@
 'use client';
 
+import React, { useState, useMemo } from 'react';
 import { Badge, Button, Input, Select, Space, Table, Tag } from 'antd';
+import { SESSION_STATUS } from '../../../../core/constants';
+import StatusBadgeLivestream from '../components/StatusBadgeLivestream';
 
 const badgeConfig = {
-  LIVE: {
+  [SESSION_STATUS.Live]: {
     text: 'LIVE',
     className: 'bg-[rgba(239,68,68,0.1)] text-[#EF4444] border border-[rgba(239,68,68,0.3)] animate-pulse',
   },
-  ENDED: {
+  [SESSION_STATUS.Ended]: {
     text: 'Đã kết thúc',
     className: 'bg-[rgba(148,163,184,0.1)] text-[#94A3B8] border border-[rgba(148,163,184,0.3)]',
   },
-  SCHEDULED: {
+  [SESSION_STATUS.Scheduled]: {
     text: 'Sắp diễn ra',
     className: 'bg-[rgba(212,175,55,0.1)] text-[#D4AF37] border border-[rgba(212,175,55,0.3)]',
   },
-  OFFLINE: {
-    text: 'Đã offline',
-    className: 'bg-[rgba(59,130,246,0.1)] text-[#3B82F6] border border-[rgba(59,130,246,0.3)]',
-  }
 };
 
 
-export default function SessionList({ rooms, isLoading }) {
+export default function SessionList({ rooms, isLoading, handleChangeTab }) {
+  const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  const sortedRooms = [...rooms].sort((a, b) => {
-    if (a.status === 'LIVE' && b.status !== 'LIVE') return -1;
-    if (a.status !== 'LIVE' && b.status === 'LIVE') return 1;
-    return 0;
-  });
+  const filteredAndSortedRooms = useMemo(() => {
+    let result = rooms || [];
+
+    if (searchText) {
+      const lowerSearch = searchText.toLowerCase();
+      result = result.filter(r => 
+        (r.title && r.title.toLowerCase().includes(lowerSearch)) ||
+        (r.host && r.host.toLowerCase().includes(lowerSearch)) ||
+        (r.id && r.id.toString().toLowerCase().includes(lowerSearch))
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      result = result.filter(r => r.status === statusFilter);
+    }
+
+    return [...result].sort((a, b) => {
+      if (a.status === SESSION_STATUS.Live && b.status !== SESSION_STATUS.Live) return -1;
+      if (a.status !== SESSION_STATUS.Live && b.status === SESSION_STATUS.Live) return 1;
+      return 0;
+    });
+  }, [rooms, searchText, statusFilter]);
 
 
   const columns = [
@@ -36,14 +54,7 @@ export default function SessionList({ rooms, isLoading }) {
       title: 'Phiên Livestream',
       dataIndex: 'title',
       key: 'title',
-      align: 'center',
-      width: '100%',
       render: (_, room) => {
-        const config = badgeConfig[room.status] || {
-          text: room.status,
-          className: 'bg-gray-100 text-gray-600',
-        }
-
         return (
           <div className="flex items-start gap-3">
 
@@ -51,26 +62,23 @@ export default function SessionList({ rooms, isLoading }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className="
-              w-fit h-11 rounded-xl
-              !px-2
-              bg-[#111827]
-              border border-[#1E2633]
-              flex items-center justify-center
-              text-[#D4AF37]
-              text-sm font-bold
-              shrink-0
-            "
+                    w-fit h-7 rounded-lg
+                    !px-2
+                    bg-[#111827]
+                    border border-[#1E2633]
+                    flex items-center justify-center
+                    text-[#D4AF37]
+                    text-xs font-bold
+                    shrink-0
+                  "
                 >
                   #{room.id}
                 </span>
-                <span className="text-white font-semibold text-sm">
+                <span className="text-white font-semibold text-sm md:text-base line-clamp-1">
                   {room.title}
                 </span>
 
-                <div className={`flex items-center justify-center px-2 py-1 gap-[6px] rounded-xl ${config.className} text-sm/[140%] tracking-[2%] font-medium inline-block`}>
-                  {config.text}
-                </div>
-
+                <StatusBadgeLivestream status={room.status} />
               </div>
 
               <div className="mt-2 text-[#94A3B8] text-xs flex flex-wrap gap-x-4 gap-y-1">
@@ -124,7 +132,7 @@ export default function SessionList({ rooms, isLoading }) {
       width: 170,
       align: 'center',
       render: (_, room) => (
-        <Space size={10} wrap className="flex flex-col">
+        <div className="flex flex-col gap-2 w-full">
 
           <Button
             type="primary"
@@ -134,17 +142,20 @@ export default function SessionList({ rooms, isLoading }) {
               !text-black
               !font-semibold
               hover:!opacity-90
+              w-full
             "
           >
             Vào Studio
           </Button>
 
           <Button
+            onClick={() => handleChangeTab('statistics')}
             className="
               !bg-[#182235]
               !border-[#2A3547]
               !text-white
               hover:!border-[#D4AF37]
+              w-full
             "
           >
             Thống kê
@@ -157,12 +168,13 @@ export default function SessionList({ rooms, isLoading }) {
               !text-[#CBD5E1]
               hover:!border-[#D4AF37]
               hover:!text-white
+              w-full
             "
           >
             Chỉnh sửa
           </Button>
 
-        </Space>
+        </div>
       ),
     },
   ];
@@ -204,21 +216,27 @@ export default function SessionList({ rooms, isLoading }) {
 
           <Input
             placeholder="Tìm kiếm phiên..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
             className="
-              !w-[260px]
+              !w-full md:!w-[260px]
               [&_.ant-input]:!bg-[#111827]
             "
           />
 
           <Select
-            defaultValue="all"
-            className="!w-[180px]"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className="!w-full md:!w-[180px]"
             options={[
               { label: 'Tất cả trạng thái', value: 'all' },
-              { label: 'LIVE', value: 'LIVE' },
-              { label: 'Offline', value: 'OFFLINE' },
-              { label: 'Sắp diễn ra', value: 'SCHEDULED' },
-              { label: 'Đã kết thúc', value: 'ENDED' },
+              { label: 'LIVE', value: SESSION_STATUS.Live },
+              { label: 'Sắp diễn ra', value: SESSION_STATUS.Scheduled },
+              { label: 'Đã kết thúc', value: SESSION_STATUS.Ended },
+              { label: 'Nháp', value: SESSION_STATUS.Draft },
+              { label: 'Đang trong phòng chờ', value: SESSION_STATUS.WaitingRoom },
+              { label: 'Đang tạm dừng', value: SESSION_STATUS.Paused },
+              { label: 'Có bản phát lại', value: SESSION_STATUS.ReplayAvailable },
             ]}
           />
         </div>
@@ -230,7 +248,7 @@ export default function SessionList({ rooms, isLoading }) {
         <Table
           rowKey="id"
           columns={columns}
-          dataSource={sortedRooms}
+          dataSource={filteredAndSortedRooms}
           loading={isLoading}
           pagination={{
             pageSize: 8,
@@ -239,6 +257,7 @@ export default function SessionList({ rooms, isLoading }) {
           bordered
           className="xh-admin-table"
           scroll={{
+            x: 1200,
             y: 600,
           }}
         />

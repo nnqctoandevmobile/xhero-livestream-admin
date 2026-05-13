@@ -44,9 +44,8 @@ export default function SignIn() {
       const { status, data } = res;
       if (status) {
         const loggedUser = data.user || { username: username.trim() };
-        sessionStorage.setItem('isLoggedIn', 'true');
-        sessionStorage.setItem('authToken', data.token || '');
-        sessionStorage.setItem('USER_INFO', JSON.stringify(loggedUser));
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('ACCESS_TOKEN_KEY', data.token || '');
         localStorage.setItem('USER_INFO', JSON.stringify(loggedUser));
         setUser(loggedUser); // UPDATE THE CONTEXT!
         navigate('/home');
