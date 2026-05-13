@@ -1,5 +1,8 @@
 'use client';
 
+import { useIsMobile } from "../../hook/useMediaQuery";
+import Logo from "../Header/component/Logo";
+
 // interface SidebarItem {
 //   text: string;
 //   value: string;
@@ -26,7 +29,7 @@ const sidebarMenu = [
   },
   {
     text: 'Video playback',
-    value: 'playbackVideos',
+    value: 'videoPlayback',
   },
   {
     text: 'Thống kê',
@@ -34,15 +37,17 @@ const sidebarMenu = [
   }
 ];
 
-export default function SideBar({ tab, setTab }) {
+export default function SideBar({ tab, setTab, isOpen, onClose }) {
+  const isMobile = useIsMobile();
   return (
-    <aside className="h-[calc(100vh-4rem)] w-[220px] border-r border-[#1E2633] flex flex-col shrink-0 bg-[#0D1424]">
-      <div className="!p-6 text-center border-b border-[#1E2633]">
-        <span className="text-xl font-bold md:text-3xl bg-gradient-to-br from-[#bf953f] via-[#fcf6ba] to-[#aa771c] bg-clip-text text-transparent">
-          XHERO
-        </span>
-      </div>
-
+    <aside className={`
+      absolute md:relative top-0 bottom-0 z-[100] w-[220px] border-r border-[#1E2633] flex items-center flex-col shrink-0 bg-[#0D1424]
+      transition-transform duration-300 ease-in-out
+      ${isMobile ? (isOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
+    `}>
+      <span className="!pt-6 text-xl font-bold md:text-3xl bg-gradient-to-br from-[#bf953f] via-[#fcf6ba] to-[#aa771c] bg-clip-text text-transparent">
+        XHERO
+      </span>
       <nav className="flex-1 py-5">
         {sidebarMenu.map((item) => {
           const active = tab === item.value;
@@ -50,7 +55,10 @@ export default function SideBar({ tab, setTab }) {
           return (
             <button
               key={item.value}
-              onClick={() => setTab(item.value)}
+              onClick={() => {
+                onClose();
+                setTab(item.value);
+              }}
               className={`
                 w-full text-left !px-6 !py-3 text-sm transition-all
                 !border-l-4

@@ -101,19 +101,19 @@ select {
   border-radius: 16px !important;
 }
 
-.xh-admin-table .ant-table-thead > tr > th {
+.xh-admin-table .ant-table-thead>tr>th {
   background: #141B2D !important;
   color: #94A3B8 !important;
   border-bottom: 1px solid #D4AF37 !important;
   font-size: 12px !important;
 }
 
-.xh-admin-table .ant-table-tbody > tr > td {
+.xh-admin-table .ant-table-tbody>tr>td {
   background: #0D1424 !important;
   border-bottom: 1px solid rgba(212, 175, 55, 0.6) !important;
 }
 
-.xh-admin-table .ant-table-tbody > tr:hover > td {
+.xh-admin-table .ant-table-tbody>tr:hover>td {
   background: #131C2F !important;
 }
 
@@ -134,6 +134,7 @@ select {
 .xh-admin-table .ant-pagination .ant-pagination-item-active a {
   color: black !important;
 }
+
 .xh-admin-table .ant-table-bordered {
   border: 1px solid #D4AF37 !important;
 }
@@ -143,14 +144,12 @@ select {
   border-top: 1px solid #D4AF37 !important;
 }
 
-.xh-admin-table .ant-table-bordered
-.ant-table-thead > tr > th,
-.xh-admin-table .ant-table-bordered
-.ant-table-tbody > tr > td {
+.xh-admin-table .ant-table-bordered .ant-table-thead>tr>th,
+.xh-admin-table .ant-table-bordered .ant-table-tbody>tr>td {
   border-inline-end: 1px solid #D4AF37 !important;
 }
 
-.xh-admin-table .ant-table-thead > tr > th.ant-table-cell-scrollbar {
+.xh-admin-table .ant-table-thead>tr>th.ant-table-cell-scrollbar {
   border-inline-end: none !important;
   box-shadow: none !important;
 }
@@ -161,4 +160,40 @@ select {
 
 .xh-admin-table .ant-table-placeholder .ant-empty-description {
   color: white !important;
+}
+
+/* Target the scrollable area of the Ant Design Table */
+.ant-table-body,
+.ant-table-content {
+  scrollbar-width: thin;
+  /* For Firefox */
+  scrollbar-color: #90a4ae #e0e0e0;
+  /* For Firefox */
+}
+
+/* Chrome, Edge, and Safari */
+.ant-table-body::-webkit-scrollbar,
+.ant-table-content::-webkit-scrollbar {
+  width: 8px;
+  /* Vertical scrollbar width */
+  height: 8px;
+  /* Horizontal scrollbar height */
+  display: block;
+}
+
+.ant-table-body::-webkit-scrollbar-track,
+.ant-table-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.ant-table-body::-webkit-scrollbar-thumb,
+.ant-table-content::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+}
+
+.ant-table-body::-webkit-scrollbar-thumb:hover,
+.ant-table-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }

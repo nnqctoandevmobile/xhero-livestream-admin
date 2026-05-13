@@ -34,7 +34,7 @@ export default class NewService {
       headers: {},
       method: 'post',
       token: undefined,
-      onUploadProgress: () => {},
+      onUploadProgress: () => { },
       signal: undefined,
     }
   ) {
@@ -135,7 +135,7 @@ export default class NewService {
     options = {
       headers: {},
       method: 'post',
-      onUploadProgress: () => {},
+      onUploadProgress: () => { },
     }
   ) {
     const { headers, onUploadProgress, responseType } = options;

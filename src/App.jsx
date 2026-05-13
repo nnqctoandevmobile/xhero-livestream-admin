@@ -1,6 +1,6 @@
 import './App.css'
+import AuthProvider from './hook/AuthProvider'
 import RouteComponent from './routes/routes'
-import AuthProvider from './context/AuthProvider'
 
 function App() {
   return (

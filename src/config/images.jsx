@@ -1,7 +1,8 @@
-import logoXHero from '../assets/images/logo.png';
 
 const images = {
-  logoXHero: logoXHero,
+  logoXHeroLive: '/assets/images/logoLiveXhero.png',
+  logoXHeroApp: '/assets/images/logoAppXhero.png',
+  iconUpload: '/assets/images/iconUpload.svg',
 };
 
 export default images;
