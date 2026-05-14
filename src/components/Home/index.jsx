@@ -150,7 +150,7 @@ export default function Home() {
             <SessionList rooms={rooms} isLoading={false} handleChangeTab={handleChangeTab} />
           )}
           {tab === 'newSession' && (
-            <NewSession />
+            <NewSession setTab={setTab} />
           )}
           {tab === 'consultingForms' && (
             <ConsultingForms />

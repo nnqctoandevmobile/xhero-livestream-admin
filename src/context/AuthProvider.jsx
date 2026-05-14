@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { AuthContext } from './useAuth';
+import { AuthContext } from '../hook/useAuth';
 
 function AuthProvider({ children }) {
   // Only get user from localStorage as requested
@@ -17,8 +17,7 @@ function AuthProvider({ children }) {
 
   // Provide a basic signout function to clear the storage
   const signout = useCallback(() => {
-    localStorage.removeItem('USER_INFO');
-    localStorage.removeItem('ACCESS_TOKEN_KEY');
+    localStorage.removeItem('auth/token');
     localStorage.removeItem('USER_INFO');
     setUser(null);
   }, []);

@@ -1,12 +1,15 @@
 import './App.css'
-import AuthProvider from './hook/AuthProvider'
+import UIProvider from './context/UiProvider'
+import AuthProvider from './context/AuthProvider'
 import RouteComponent from './routes/routes'
 
 function App() {
   return (
-    <AuthProvider>
-      <RouteComponent />
-    </AuthProvider>
+    <UIProvider>
+      <AuthProvider>
+        <RouteComponent />
+      </AuthProvider>
+    </UIProvider>
   )
 }
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../api';
 import { useAuth } from '../../hook/useAuth';
+import { useUI } from '../../hook/useUI';
 
 const authService = new AuthService();
 
@@ -17,7 +18,7 @@ export default function SignIn() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { loading, setLoading } = useUI(false);
 
   useEffect(() => {
     if (isLogged) {
@@ -44,10 +45,10 @@ export default function SignIn() {
       const { status, data } = res;
       if (status) {
         const loggedUser = data.user || { username: username.trim() };
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('ACCESS_TOKEN_KEY', data.token || '');
+        localStorage.setItem('auth/token', data.token || '');
         localStorage.setItem('USER_INFO', JSON.stringify(loggedUser));
         setUser(loggedUser); // UPDATE THE CONTEXT!
+        setLoading(false);
         navigate('/home');
       } else {
         message.error(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');

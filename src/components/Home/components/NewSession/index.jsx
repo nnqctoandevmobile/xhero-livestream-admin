@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DatePicker, ConfigProvider, theme } from 'antd';
+import { DatePicker, ConfigProvider, theme, Button } from 'antd';
 import dayjs from 'dayjs';
 import images from '../../../../config/images';
 import FileUploadSection from '../components/FileUploadSection';
 import { AdminPanelService } from '../../../../api';
+import { useUI } from '../../../../hook/useUI';
 
 const getEmbedUrl = (url) => {
   if (!url) return '';
@@ -14,7 +15,7 @@ const getEmbedUrl = (url) => {
   return url;
 };
 
-export default function NewSession() {
+export default function NewSession({ setTab }) {
   const [formData, setFormData] = useState({
     title: '',
     hostName: '',
@@ -33,8 +34,16 @@ export default function NewSession() {
     notifyImageFile: null,
   });
 
+  const [bannerFile, setBannerFile] = useState(null);
+  const [uploadingBannerFile, setUploadingBannerFile] = useState(false);
+  const [audioFile, setAudioFile] = useState(null);
+  const [uploadingAudioFile, setUploadingAudioFile] = useState(false);
+  const [notifyImageFile, setNotifyImageFile] = useState(null);
+  const [uploadingNotifyImageFile, setUploadingNotifyImageFile] = useState(false);
+
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+  const { loading, setLoading } = useUI();
   const audioRef = useRef(null);
 
   const adminPanelService = new AdminPanelService();
@@ -54,45 +63,11 @@ export default function NewSession() {
     if (name === 'title' && !value.trim()) error = 'Vui lòng nhập tên phiên';
     if (name === 'hostName' && !value.trim()) error = 'Vui lòng nhập tên host';
     if (name === 'startTime' && !value) error = 'Vui lòng chọn thời gian bắt đầu';
+    if (name === 'notifyTitle' && !value) error = 'Vui lòng nhập tiêu đề thông báo';
+    if (name === 'notifyContent' && !value) error = 'Vui lòng nhập nội dung thông báo';
 
     setErrors(prev => ({ ...prev, [name]: error }));
     return error === '';
-  };
-
-  const handleBannerUpload = (file) => {
-    if (formData.bannerFile?.url) URL.revokeObjectURL(formData.bannerFile.url);
-    if (!file) {
-      setFormData(prev => ({ ...prev, bannerFile: null }));
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    // Attach preview URL to the file object for easy access
-    file.url = url;
-    setFormData(prev => ({ ...prev, bannerFile: file }));
-  };
-
-  const handleNotifyImageUpload = (file) => {
-    if (formData.notifyImageFile?.url) URL.revokeObjectURL(formData.notifyImageFile.url);
-    if (!file) {
-      setFormData(prev => ({ ...prev, notifyImageFile: null }));
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    file.url = url;
-    setFormData(prev => ({ ...prev, notifyImageFile: file }));
-  };
-
-  const handleAudioUpload = (file) => {
-    if (formData.audioFile?.url) URL.revokeObjectURL(formData.audioFile.url);
-    if (!file) {
-      setFormData(prev => ({ ...prev, audioFile: null }));
-      setIsPlayingAudio(false);
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    file.url = url;
-    setFormData(prev => ({ ...prev, audioFile: file }));
-    setIsPlayingAudio(false);
   };
 
   const toggleAudio = () => {
@@ -115,33 +90,36 @@ export default function NewSession() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const isValidTitle = validateField('title', formData.title);
     const isValidHost = validateField('hostName', formData.hostName);
     const isValidTime = validateField('startTime', formData.startTime);
+    const isValidNotifyTitle = validateField('notifyTitle', formData.notifyTitle);
+    const isValidNotifyContent = validateField('notifyContent', formData.notifyContent);
 
-    if (isValidTitle && isValidHost && isValidTime) {
+    if (isValidTitle && isValidHost && isValidTime && isValidNotifyTitle && isValidNotifyContent) {
       console.log('Form data ready to submit:', formData);
     }
 
-    let payload = {
+    let payloadNotify = {
       title: formData.notifyTitle,
-      content: formData.notifyContent,
-      image: formData.notifyImageFile,
+      text: formData.notifyContent,
+      image: formData.notifyImageFile.url || '',
       // time: formData.notifyTime,
     }
 
     if (formData.isNotify) {
       if (formData.notifyTarget === 'all') {
         try {
-          const res = await adminPanelService.actPostNotification(payload);
+          setLoading(true);
+          const res = await adminPanelService.actPostNotification(payloadNotify);
         } catch (error) {
           console.log('Error notify to all users:', error);
+        } finally {
+          setLoading(false);
         }
       }
     }
   };
-
   return (
     <div className="relative pb-24">
       <section className="bg-[#0D1424] border border-[#1E2633] rounded-2xl overflow-hidden mb-6">
@@ -245,10 +223,17 @@ export default function NewSession() {
                           </label>
                           <FileUploadSection
                             accept="image/*"
-                            value={formData.bannerFile}
-                            onChange={handleBannerUpload}
-                            title="Nhấp để tải ảnh lên"
-                            description="PNG, JPG, GIF lên đến 5MB"
+                            uploadType="image"
+                            uploadedFile={bannerFile}
+                            setUploadedFile={setBannerFile}
+                            setUploadingFile={setUploadingBannerFile}
+                            onChange={(file) => {
+                              setFormData((prev) => ({ ...prev, bannerFile: file }));
+                              setBannerFile(file);
+                            }}
+                          // onChange={handleBannerUpload}
+                          // title="Nhấp để tải ảnh lên"
+                          // description="PNG, JPG, GIF lên đến 5MB"
                           />
                           <div className="mt-3 flex gap-5">
                             <label className="flex items-center gap-2 cursor-pointer text-sm text-[#7E8CA8] hover:text-white transition-colors">
@@ -267,10 +252,17 @@ export default function NewSession() {
                           </label>
                           <FileUploadSection
                             accept="audio/*"
-                            value={formData.audioFile}
-                            onChange={handleAudioUpload}
-                            title="Nhấp để tải âm thanh"
-                            description="MP3, WAV, OGG lên đến 15MB"
+                            uploadType="audio"
+                            uploadedFile={audioFile}
+                            setUploadedFile={setAudioFile}
+                            setUploadingFile={setUploadingAudioFile}
+                            onChange={(file) => {
+                              setFormData((prev) => ({ ...prev, audioFile: file }));
+                              setAudioFile(file);
+                            }}
+                          // onChange={handleAudioUpload}
+                          // title="Nhấp để tải âm thanh"
+                          // description="MP3, WAV, OGG lên đến 15MB"
                           />
                         </div>
                       </div>
@@ -311,7 +303,7 @@ export default function NewSession() {
                   <div
                     className="w-full aspect-video rounded-xl overflow-hidden relative border border-[#1E2633] shadow-2xl flex flex-col items-center p-4 lg:p-6 mx-auto"
                     style={{
-                      backgroundImage: formData.bannerFile?.url ? `url(${formData.bannerFile.url})` : 'none',
+                      backgroundImage: formData.bannerFile?.previewUrl ? `url(${formData.bannerFile.previewUrl})` : 'none',
                       backgroundSize: formData.bannerFit || 'cover',
                       backgroundPosition: 'center center',
                       backgroundRepeat: 'no-repeat',
@@ -321,9 +313,9 @@ export default function NewSession() {
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-[#090D14]/80 backdrop-blur-[2px]"></div>
                     {/* Audio Player Logic */}
-                    {formData.audioFile?.url && (
+                    {formData.audioFile?.previewUrl && (
                       <>
-                        <audio ref={audioRef} src={formData.audioFile?.url} loop />
+                        <audio ref={audioRef} src={formData.audioFile?.previewUrl} loop />
                         <button
                           type="button"
                           onClick={toggleAudio}
@@ -484,7 +476,7 @@ export default function NewSession() {
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm text-[#7E8CA8] mb-1">
-                              Tiêu đề thông báo
+                              Tiêu đề thông báo<span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -492,8 +484,9 @@ export default function NewSession() {
                               value={formData.notifyTitle}
                               onChange={handleChange}
                               placeholder="Ví dụ: Livestream sắp bắt đầu!"
-                              className="w-full bg-[#151D2C] border border-[#2A3441] focus:border-[#3B82F6] rounded-lg px-4 py-2.5 text-white outline-none transition-colors"
+                              className={`w-full bg-[#151D2C] border ${errors.notifyTitle ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
                             />
+                            {errors.notifyTitle && <span className="text-red-500 text-xs mt-1 block">{errors.notifyTitle}</span>}
                           </div>
                           <div>
                             <label className="block text-sm text-[#7E8CA8] mb-1">
@@ -531,7 +524,7 @@ export default function NewSession() {
                         {/* Nội dung */}
                         <div>
                           <label className="block text-sm text-[#7E8CA8] mb-1">
-                            Nội dung thông báo
+                            Nội dung thông báo<span className="text-red-500">*</span>
                           </label>
                           <textarea
                             name="notifyContent"
@@ -539,8 +532,9 @@ export default function NewSession() {
                             onChange={handleChange}
                             rows="2"
                             placeholder="Nhập nội dung ngắn gọn..."
-                            className="w-full bg-[#151D2C] border border-[#2A3441] focus:border-[#3B82F6] rounded-lg px-4 py-2.5 text-white outline-none transition-colors resize-none"
+                            className={`w-full bg-[#151D2C] border ${errors.notifyContent ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors resize-none`}
                           ></textarea>
+                          {errors.notifyContent && <span className="text-red-500 text-xs mt-1 block">{errors.notifyContent}</span>}
                         </div>
 
                         {/* Đối tượng & Ảnh đính kèm */}
@@ -578,10 +572,17 @@ export default function NewSession() {
                             </label>
                             <FileUploadSection
                               accept="image/*"
-                              value={formData.notifyImageFile}
-                              onChange={handleNotifyImageUpload}
-                              title="Nhấp để tải ảnh lên"
-                              description="PNG, JPG, GIF lên đến 5MB"
+                              uploadType="image"
+                              uploadedFile={notifyImageFile}
+                              setUploadedFile={setNotifyImageFile}
+                              setUploadingFile={setUploadingNotifyImageFile}
+                              onChange={(file) => {
+                                setFormData((prev) => ({ ...prev, notifyImageFile: file }));
+                                setNotifyImageFile(file);
+                              }}
+                            // onChange={handleNotifyImageUpload}
+                            // title="Nhấp để tải ảnh lên"
+                            // description="PNG, JPG, GIF lên đến 5MB"
                             />
                           </div>
                         </div>
@@ -638,13 +639,17 @@ export default function NewSession() {
         <div className="flex items-center gap-3 w-full px-6">
           <div className="flex-1"></div>
           <button
+            onClick={() => setTab("sessionList")}
             type="button"
             className="px-6 py-2.5 rounded-lg font-medium text-[#7E8CA8] hover:text-white hover:bg-[#151D2C] transition-colors"
           >
             Hủy bỏ
           </button>
-          <button
-            type="submit"
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading || uploadingAudioFile || uploadingBannerFile || uploadingNotifyImageFile}
+            // disabled={loading || uploadingAudioFile || uploadingBannerFile || uploadingNotifyImageFile}
             form="new-session-form"
             className="px-6 py-2.5 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg shadow-blue-600/20"
           >
@@ -652,7 +657,7 @@ export default function NewSession() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
             </svg>
             Lưu & Tạo phiên
-          </button>
+          </Button>
         </div>
       </div>
     </div>

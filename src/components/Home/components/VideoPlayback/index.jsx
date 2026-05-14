@@ -155,7 +155,6 @@ export default function VideoPlayback() {
       title: 'Phiên Livestream',
       dataIndex: 'info',
       key: 'info',
-      width: 250,
       render: (info, record) => (
         <div className="flex items-center gap-3">
           <div className="w-16 h-10 bg-[#111827] rounded overflow-hidden shrink-0 border border-[#1E2633] flex items-center justify-center relative group">
@@ -286,7 +285,7 @@ export default function VideoPlayback() {
           }}
           bordered
           className="xh-admin-table"
-          scroll={{ x: 1000, y: 'calc(100vh - 280px)' }}
+          scroll={{ x: 1200, y: 'calc(100vh - 280px)' }}
         />
       </div>
     </section>
