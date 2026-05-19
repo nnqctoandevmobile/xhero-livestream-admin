@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Badge, Button, Input, Select, Space, Table, Tag } from 'antd';
 import { SESSION_STATUS } from '../../../../core/constants';
 import StatusBadgeLivestream from '../components/StatusBadgeLivestream';
+import { useNavigate } from 'react-router-dom';
 
 const badgeConfig = {
   [SESSION_STATUS.Live]: {
@@ -21,16 +22,17 @@ const badgeConfig = {
 };
 
 
-export default function SessionList({ rooms, isLoading, handleChangeTab }) {
+export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomId }) {
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useNavigate();
 
   const filteredAndSortedRooms = useMemo(() => {
     let result = rooms || [];
 
     if (searchText) {
       const lowerSearch = searchText.toLowerCase();
-      result = result.filter(r => 
+      result = result.filter(r =>
         (r.title && r.title.toLowerCase().includes(lowerSearch)) ||
         (r.host && r.host.toLowerCase().includes(lowerSearch)) ||
         (r.id && r.id.toString().toLowerCase().includes(lowerSearch))
@@ -48,6 +50,15 @@ export default function SessionList({ rooms, isLoading, handleChangeTab }) {
     });
   }, [rooms, searchText, statusFilter]);
 
+  const handleChangeTab = (roomId) => {
+    setSelectedRoomId(roomId);
+    setTab('statistics');
+  };
+
+  const handleJoinStudio = (roomId) => {
+    setSelectedRoomId(roomId);
+    navigate(`/admin-host-studio/${roomId}`);
+  };
 
   const columns = [
     {
@@ -135,6 +146,7 @@ export default function SessionList({ rooms, isLoading, handleChangeTab }) {
         <div className="flex flex-col gap-2 w-full">
 
           <Button
+            onClick={() => handleJoinStudio(room.id)}
             type="primary"
             className="
               !bg-[#D4AF37]
@@ -149,7 +161,7 @@ export default function SessionList({ rooms, isLoading, handleChangeTab }) {
           </Button>
 
           <Button
-            onClick={() => handleChangeTab('statistics')}
+            onClick={() => handleChangeTab(room.id)}
             className="
               !bg-[#182235]
               !border-[#2A3547]

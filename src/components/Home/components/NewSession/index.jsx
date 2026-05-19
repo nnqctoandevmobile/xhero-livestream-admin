@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DatePicker, ConfigProvider, theme, Button } from 'antd';
+import { DatePicker, ConfigProvider, theme, Button, message, Switch } from 'antd';
 import dayjs from 'dayjs';
 import images from '../../../../config/images';
 import FileUploadSection from '../components/FileUploadSection';
 import { AdminPanelService } from '../../../../api';
 import { useUI } from '../../../../hook/useUI';
+import { rtdb } from '../../../../core/firebase';
+import { ref, set } from 'firebase/database';
+import { useNavigate } from 'react-router-dom';
 
 const getEmbedUrl = (url) => {
   if (!url) return '';
@@ -13,6 +16,17 @@ const getEmbedUrl = (url) => {
   const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/);
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
   return url;
+};
+
+const getAntMediaApiUrl = () => {
+  const server = import.meta.env.NEXT_PUBLIC_ANT_MEDIA_SERVER;
+  const port = import.meta.env.NEXT_PUBLIC_ANT_MEDIA_PORT;
+  const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:';
+
+  if (port === '443' || port === '80' || !port) {
+    return `${protocol}//${server}/LiveApp`;
+  }
+  return `${protocol}//${server}:${port}/LiveApp`;
 };
 
 export default function NewSession({ setTab }) {
@@ -32,6 +46,9 @@ export default function NewSession({ setTab }) {
     notifyTargetIds: '',
     notifyTime: '',
     notifyImageFile: null,
+    roomIdInput: '',
+    hasPassword: false,
+    roomPassword: '',
   });
 
   const [bannerFile, setBannerFile] = useState(null);
@@ -45,6 +62,7 @@ export default function NewSession({ setTab }) {
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const { loading, setLoading } = useUI();
   const audioRef = useRef(null);
+  const navigate = useNavigate();
 
   const adminPanelService = new AdminPanelService();
 
@@ -65,6 +83,8 @@ export default function NewSession({ setTab }) {
     if (name === 'startTime' && !value) error = 'Vui lòng chọn thời gian bắt đầu';
     if (name === 'notifyTitle' && !value) error = 'Vui lòng nhập tiêu đề thông báo';
     if (name === 'notifyContent' && !value) error = 'Vui lòng nhập nội dung thông báo';
+    if (name === 'roomIdInput' && !value.trim()) error = 'Vui lòng nhập Stream ID';
+    if (name === 'roomPassword' && formData.hasPassword && !value.trim()) error = 'Vui lòng nhập mật mã phòng';
 
     setErrors(prev => ({ ...prev, [name]: error }));
     return error === '';
@@ -95,31 +115,101 @@ export default function NewSession({ setTab }) {
     const isValidTime = validateField('startTime', formData.startTime);
     const isValidNotifyTitle = validateField('notifyTitle', formData.notifyTitle);
     const isValidNotifyContent = validateField('notifyContent', formData.notifyContent);
-
-    if (isValidTitle && isValidHost && isValidTime && isValidNotifyTitle && isValidNotifyContent) {
-      console.log('Form data ready to submit:', formData);
+    const isValidRoomId = validateField('roomIdInput', formData.roomIdInput);
+    const isValidPassword = formData.hasPassword ? validateField('roomPassword', formData.roomPassword) : true;
+    if (!isValidTitle) {
+      message.error('Vui lòng điền tên phiên livestream');
+      return;
+    }
+    if (!isValidHost) {
+      message.error('Vui lòng điền tên host');
+      return;
+    }
+    if (!isValidTime) {
+      message.error('Vui lòng chọn thời gian bắt đầu');
+      return;
+    }
+    if (!isValidRoomId) {
+      message.error('Vui lòng nhập Stream ID');
+      return;
+    }
+    if (!isValidPassword) {
+      message.error('Vui lòng nhập mật mã phòng');
+      return;
+    }
+    if (formData.isNotify && (!isValidNotifyTitle || !isValidNotifyContent)) {
+      message.error('Vui lòng điền tiêu đề và nội dung thông báo');
+      return;
+    }
+    // 1. Sync room title to Ant Media Server via REST API
+    try {
+      const apiUrl = getAntMediaApiUrl();
+      await fetch(`${apiUrl}/rest/v2/broadcasts/${formData.roomIdInput}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: formData.title })
+      });
+      console.log('Successfully synced room title to Ant Media Server:', formData.title);
+    } catch (apiErr) {
+      console.warn('Failed to sync room title to Ant Media Server:', apiErr);
     }
 
-    let payloadNotify = {
-      title: formData.notifyTitle,
-      text: formData.notifyContent,
-      image: formData.notifyImageFile.url || '',
-      // time: formData.notifyTime,
-    }
-
-    if (formData.isNotify) {
-      if (formData.notifyTarget === 'all') {
-        try {
-          setLoading(true);
-          const res = await adminPanelService.actPostNotification(payloadNotify);
-        } catch (error) {
-          console.log('Error notify to all users:', error);
-        } finally {
-          setLoading(false);
+    // 2. Initialize Session in Firebase RTDB
+    setLoading(true);
+    try {
+      const roomRef = ref(rtdb, `rooms/${formData.roomIdInput}`);
+      const sessionData = {
+        id: formData.roomIdInput,
+        title: formData.title,
+        hostName: formData.hostName,
+        state: {
+          isLive: false,
+          status: 'scheduled',
+          roomTitle: formData.title,
+          hostName: formData.hostName,
+          startTime: formData.startTime,
+          dateStr: dayjs(formData.startTime).format('DD/MM/YYYY'),
+          timeStr: dayjs(formData.startTime).format('HH:mm'),
+          banner: formData.bannerFile?.url || '',
+          bannerFit: formData.bannerFit,
+          description: formData.description,
+          videoUrl: formData.videoUrl,
+          audioUrl: formData.audioFile?.url || '',
+          createdAt: Date.now()
         }
+      };
+
+      await set(roomRef, sessionData);
+      message.success('Đã khởi tạo phiên livestream thành công!');
+    } catch (firebaseErr) {
+      console.error('Failed to initialize session in Firebase:', firebaseErr);
+      message.error('Lỗi nghiêm trọng: Không thể lưu thông tin lên Firebase. Vui lòng thử lại.');
+      setLoading(false);
+      return; // Stop here if Firebase fails
+    }
+
+    // 3. Handle Notification (Optional background task)
+    if (formData.isNotify) {
+      try {
+        let payloadNotify = {
+          title: formData.notifyTitle,
+          text: formData.notifyContent,
+          image: formData.notifyImageFile?.url || '',
+        };
+        if (formData.notifyTarget === 'all') {
+          await adminPanelService.actPostNotification(payloadNotify);
+        }
+      } catch (error) {
+        console.error('Error sending notification:', error);
+        message.warning('Phiên live đã tạo nhưng không thể gửi thông báo.');
       }
     }
+    setLoading(false);
+    navigate('/admin-host-studio/' + formData.roomIdInput);
   };
+
   return (
     <div className="relative pb-24">
       <section className="bg-[#0D1424] border border-[#1E2633] rounded-2xl overflow-hidden mb-6">
@@ -159,6 +249,54 @@ export default function NewSession({ setTab }) {
                         />
                         {errors.title && <span className="text-red-500 text-xs mt-1 block">{errors.title}</span>}
                       </div>
+                      <div>
+                        <label className="block text-sm text-[#7E8CA8] mb-1">
+                          Stream ID (Ant Media) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="roomIdInput"
+                          value={formData.roomIdInput}
+                          onChange={handleChange}
+                          placeholder="Ví dụ: room_123"
+                          className={`w-full bg-[#151D2C] border ${errors.roomIdInput ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
+                        />
+                        {errors.roomIdInput && <span className="text-red-500 text-xs mt-1 block">{errors.roomIdInput}</span>}
+                      </div>
+
+                      <div className="bg-[#111827] p-4 rounded-xl border border-[#1E2633] space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h5 className="text-white text-sm font-medium">Bảo mật phòng</h5>
+                            <p className="text-xs text-[#7E8CA8]">Yêu cầu mật mã để tham gia phiên live</p>
+                          </div>
+                          <Switch
+                            checked={formData.hasPassword}
+                            onChange={(checked) => {
+                              setFormData(prev => ({ ...prev, hasPassword: checked }));
+                              if (!checked) setErrors(prev => ({ ...prev, roomPassword: '' }));
+                            }}
+                          />
+                        </div>
+
+                        {formData.hasPassword && (
+                          <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <label className="block text-sm text-[#7E8CA8] mb-1">
+                              Mật mã tham gia <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="roomPassword"
+                              value={formData.roomPassword}
+                              onChange={handleChange}
+                              placeholder="Nhập mật mã ví dụ: 123456"
+                              className={`w-full bg-[#151D2C] border ${errors.roomPassword ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
+                            />
+                            {errors.roomPassword && <span className="text-red-500 text-xs mt-1 block">{errors.roomPassword}</span>}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm text-[#7E8CA8] mb-1">

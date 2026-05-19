@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Select } from 'antd';
-import { ref, onValue } from 'firebase/database';
-import { rtdb } from '../../../../core/firebase';
-import { parseRoomsData } from '../../../../core/ultils';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -16,24 +13,14 @@ import {
 } from 'recharts';
 import StatusBadgeLivestream from '../components/StatusBadgeLivestream';
 
-export default function Statistics() {
-  const [rooms, setRooms] = useState([]);
-  const [selectedRoomId, setSelectedRoomId] = useState(null);
+export default function Statistics({ rooms = [], selectedRoomId, setSelectedRoomId }) {
   const [historyData, setHistoryData] = useState({ lineData: [], barData: [] });
 
   useEffect(() => {
-    const roomsRef = ref(rtdb, 'rooms');
-    const unsubscribe = onValue(roomsRef, (snapshot) => {
-      const data = snapshot.val();
-      const parsed = parseRoomsData(data);
-      setRooms(parsed);
-
-      if (parsed.length > 0 && !selectedRoomId) {
-        setSelectedRoomId(parsed[0].id);
-      }
-    });
-    return () => unsubscribe();
-  }, [selectedRoomId]);
+    if (!selectedRoomId && rooms.length > 0) {
+      setSelectedRoomId(rooms[0].id);
+    }
+  }, [rooms, selectedRoomId, setSelectedRoomId]);
 
   const currentRoom = useMemo(() => {
     if (!rooms || rooms.length === 0) return null;

@@ -128,26 +128,22 @@ export default function Home() {
     return () => unsubscribe();
   }, [isLogged]);
 
-  const handleChangeTab = (tab) => {
-    setTab(tab);
-  };
-
   return (
     <div className="h-screen bg-[var(--bg-main, #09101a)] flex flex-col">
       <Header setIsDrawerOpen={setIsDrawerOpen} isDrawerOpen={isDrawerOpen} />
       <div className="flex flex-1 overflow-hidden relative">
         {/* Backdrop for mobile */}
         {isDrawerOpen && isMobile && (
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 z-[90] backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setIsDrawerOpen(false)}
           />
         )}
-        
+
         <SideBar tab={tab} setTab={setTab} isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
         <main className="flex-1 p-2 md:p-6 overflow-y-auto">
           {tab === 'sessionList' && (
-            <SessionList rooms={rooms} isLoading={false} handleChangeTab={handleChangeTab} />
+            <SessionList rooms={rooms} isLoading={false} setTab={setTab} setSelectedRoomId={setSelectedRoomId} />
           )}
           {tab === 'newSession' && (
             <NewSession setTab={setTab} />
