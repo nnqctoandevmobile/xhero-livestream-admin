@@ -1,63 +1,139 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Badge, Button, Input, Select, Space, Table, Tag } from 'antd';
-import { SESSION_STATUS } from '../../../../core/constants';
-import StatusBadgeLivestream from '../components/StatusBadgeLivestream';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Badge, Button, Input, Select, Table } from 'antd';
+import { SESSION_STATUS, SESSION_PRIVACY } from '../../../../core/constants';
+import { StatusBadgeLivestream, PrivacyBadgeLivestream } from '../components/StatusBadgeLivestream';
 import { useNavigate } from 'react-router-dom';
+import { AdminPanelService } from '../../../../api';
+import RenderPages from '../components/RenderPages';
 
-const badgeConfig = {
-  [SESSION_STATUS.Live]: {
-    text: 'LIVE',
-    className: 'bg-[rgba(239,68,68,0.1)] text-[#EF4444] border border-[rgba(239,68,68,0.3)] animate-pulse',
-  },
-  [SESSION_STATUS.Ended]: {
-    text: 'Đã kết thúc',
-    className: 'bg-[rgba(148,163,184,0.1)] text-[#94A3B8] border border-[rgba(148,163,184,0.3)]',
-  },
-  [SESSION_STATUS.Scheduled]: {
-    text: 'Sắp diễn ra',
-    className: 'bg-[rgba(212,175,55,0.1)] text-[#D4AF37] border border-[rgba(212,175,55,0.3)]',
-  },
+const api = new AdminPanelService();
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'Chưa xác định';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch (e) {
+    return dateStr;
+  }
 };
 
-
-export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomId }) {
+export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [privacyFilter, setPrivacyFilter] = useState('all');
+  const [recordingFilter, setRecordingFilter] = useState('all');
   const navigate = useNavigate();
+  const [rooms, setRooms] = useState([]);
 
-  const filteredAndSortedRooms = useMemo(() => {
-    let result = rooms || [];
+  // Pagination & Server Side Filter states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [localLoading, setLocalLoading] = useState(false);
 
-    if (searchText) {
-      const lowerSearch = searchText.toLowerCase();
-      result = result.filter(r =>
-        (r.title && r.title.toLowerCase().includes(lowerSearch)) ||
-        (r.host && r.host.toLowerCase().includes(lowerSearch)) ||
-        (r.id && r.id.toString().toLowerCase().includes(lowerSearch))
-      );
+  // Debounced search text state to prevent flooding backend API requests
+  const [debouncedSearchText, setDebouncedSearchText] = useState(searchText);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+      setPage(1);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  const fetchData = async () => {
+    try {
+      setLocalLoading(true);
+      const skip = (page - 1) * limit;
+
+      const payload = {
+        limit,
+        skip,
+      };
+
+      if (debouncedSearchText) {
+        payload.name = debouncedSearchText;
+      }
+      if (statusFilter && statusFilter !== 'all') {
+        payload.status = statusFilter;
+      }
+      if (privacyFilter && privacyFilter !== 'all') {
+        payload.privacy = privacyFilter;
+      }
+      // if (recordingFilter !== 'all') {
+      //   payload.enabledRecording = recordingFilter === 'true';
+      // }
+
+      const res = await api.actGetLivestreamSessions(payload);
+      console.log('actGetLivestreamSessions API response:', res);
+
+      if (res) {
+        const roomData = Array.isArray(res)
+          ? res
+          : (res.data && Array.isArray(res.data.data)
+              ? res.data.data
+              : (res.data && Array.isArray(res.data) ? res.data : []));
+
+        const total = res.data?.totalItems || res.data?.total || roomData.length;
+
+        setRooms(roomData);
+        setTotalCount(total);
+      }
+    } catch (err) {
+      console.error('Failed to get livestream sessions:', err);
+    } finally {
+      setLocalLoading(false);
     }
+  };
 
-    if (statusFilter !== 'all') {
-      result = result.filter(r => r.status === statusFilter);
-    }
+  useEffect(() => {
+    fetchData();
+  }, [page, limit, statusFilter, privacyFilter, recordingFilter, debouncedSearchText]);
 
-    return [...result].sort((a, b) => {
-      if (a.status === SESSION_STATUS.Live && b.status !== SESSION_STATUS.Live) return -1;
-      if (a.status !== SESSION_STATUS.Live && b.status === SESSION_STATUS.Live) return 1;
+  const handleStatusFilterChange = (val) => {
+    setStatusFilter(val);
+    setPage(1);
+  };
+
+  const handlePrivacyFilterChange = (val) => {
+    setPrivacyFilter(val);
+    setPage(1);
+  };
+
+  const handleRecordingFilterChange = (val) => {
+    setRecordingFilter(val);
+    setPage(1);
+  };
+
+  // Locally sort rooms to show live rooms first for better UX
+  const sortedRooms = useMemo(() => {
+    return [...rooms].sort((a, b) => {
+      const aStatus = a.info?.status;
+      const bStatus = b.info?.status;
+      if (aStatus === SESSION_STATUS.Live.value && bStatus !== SESSION_STATUS.Live.value) return -1;
+      if (aStatus !== SESSION_STATUS.Live.value && bStatus === SESSION_STATUS.Live.value) return 1;
       return 0;
     });
-  }, [rooms, searchText, statusFilter]);
+  }, [rooms]);
 
   const handleChangeTab = (roomId) => {
     setSelectedRoomId(roomId);
     setTab('statistics');
   };
 
-  const handleJoinStudio = (roomId) => {
+  const handleJoinStudio = (roomId, room) => {
     setSelectedRoomId(roomId);
-    navigate(`/admin-host-studio/${roomId}`);
+    navigate(`/admin-host-studio/${roomId}`, { state: { roomInfo: room } });
   };
 
   const columns = [
@@ -66,9 +142,15 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
       dataIndex: 'title',
       key: 'title',
       render: (_, room) => {
+        const streamId = room.streamSettings?.streamId || room._id || room.id;
+        const name = room.info?.name || 'Phiên live chưa đặt tên';
+        const status = room.info?.status || 'created';
+        const privacy = room.info?.privacy || 'public';
+        const host = room.roles?.hostId || 'XHERO Host';
+        const startAtStr = formatDate(room.info?.startAt);
+
         return (
           <div className="flex items-start gap-3">
-
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span
@@ -83,18 +165,19 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
                     shrink-0
                   "
                 >
-                  #{room.id}
+                  #{streamId}
                 </span>
                 <span className="text-white font-semibold text-sm md:text-base line-clamp-1">
-                  {room.title}
+                  {name}
                 </span>
 
-                <StatusBadgeLivestream status={room.status} />
+                <StatusBadgeLivestream status={status} />
+                <PrivacyBadgeLivestream privacy={privacy} />
               </div>
 
               <div className="mt-2 text-[#94A3B8] text-xs flex flex-wrap gap-x-4 gap-y-1">
-                <span>Host: {room.host}</span>
-                <span>{room.dateStr} • {room.timeStr}</span>
+                <span>Host: {host}</span>
+                <span>Bắt đầu: {startAtStr}</span>
               </div>
             </div>
           </div>
@@ -108,11 +191,14 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
       key: 'peakViewers',
       width: 180,
       align: 'center',
-      render: (_, room) => (
-        <span className="font-semibold text-white">
-          {(room.peakViewers || room.viewers).toLocaleString()}
-        </span>
-      ),
+      render: (_, room) => {
+        const viewers = room.peakViewers || room.viewers || 0;
+        return (
+          <span className="font-semibold text-white">
+            {viewers.toLocaleString()}
+          </span>
+        );
+      }
     },
 
     {
@@ -121,20 +207,19 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
       key: 'recording',
       width: 180,
       align: 'center',
-      render: (_, room) => (
-        <div className="flex items-center gap-2">
-
-          <Badge
-            color={room.recording ? '#ef4444' : '#6b7280'}
-          />
-
-          <span className="text-sm text-[#CBD5E1]">
-            {room.recording
-              ? 'Đang ghi hình'
-              : 'Không ghi hình'}
-          </span>
-        </div>
-      ),
+      render: (_, room) => {
+        const isRecording = room.recording?.enabled === true;
+        return (
+          <div className="flex items-center gap-2">
+            <Badge
+              color={isRecording ? '#ef4444' : '#6b7280'}
+            />
+            <span className="text-sm text-[#CBD5E1]">
+              {isRecording ? 'Đang ghi hình' : 'Không ghi hình'}
+            </span>
+          </div>
+        );
+      }
     },
 
     {
@@ -142,52 +227,53 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
       key: 'actions',
       width: 170,
       align: 'center',
-      render: (_, room) => (
-        <div className="flex flex-col gap-2 w-full">
+      render: (_, room) => {
+        const streamId = room.streamSettings?.streamId || room._id || room.id;
+        return (
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              onClick={() => handleJoinStudio(streamId, room)}
+              type="primary"
+              className="
+                !bg-[#D4AF37]
+                !border-[#D4AF37]
+                !text-black
+                !font-semibold
+                hover:!opacity-90
+                w-full
+              "
+            >
+              Vào Studio
+            </Button>
 
-          <Button
-            onClick={() => handleJoinStudio(room.id)}
-            type="primary"
-            className="
-              !bg-[#D4AF37]
-              !border-[#D4AF37]
-              !text-black
-              !font-semibold
-              hover:!opacity-90
-              w-full
-            "
-          >
-            Vào Studio
-          </Button>
+            <Button
+              onClick={() => handleChangeTab(streamId)}
+              className="
+                !bg-[#182235]
+                !border-[#2A3547]
+                !text-white
+                hover:!border-[#D4AF37]
+                w-full
+              "
+            >
+              Thống kê
+            </Button>
 
-          <Button
-            onClick={() => handleChangeTab(room.id)}
-            className="
-              !bg-[#182235]
-              !border-[#2A3547]
-              !text-white
-              hover:!border-[#D4AF37]
-              w-full
-            "
-          >
-            Thống kê
-          </Button>
-
-          <Button
-            className="
-              !bg-transparent
-              !border-[#2A3547]
-              !text-[#CBD5E1]
-              hover:!border-[#D4AF37]
-              hover:!text-white
-              w-full
-            "
-          >
-            Chỉnh sửa
-          </Button>
-
-        </div>
-      ),
+            <Button
+              className="
+                !bg-transparent
+                !border-[#2A3547]
+                !text-[#CBD5E1]
+                hover:!border-[#D4AF37]
+                hover:!text-white
+                w-full
+              "
+            >
+              Chỉnh sửa
+            </Button>
+          </div>
+        );
+      }
     },
   ];
 
@@ -200,7 +286,6 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
         overflow-hidden
       "
     >
-
       {/* Header */}
       <div
         className="
@@ -212,7 +297,6 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
           gap-4
         "
       >
-
         <div>
           <h3 className="text-lg font-semibold text-white">
             Danh sách phiên
@@ -225,7 +309,6 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-3">
-
           <Input
             placeholder="Tìm kiếm phiên..."
             value={searchText}
@@ -238,39 +321,73 @@ export default function SessionList({ rooms, isLoading, setTab, setSelectedRoomI
 
           <Select
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={handleStatusFilterChange}
             className="!w-full md:!w-[180px]"
             options={[
               { label: 'Tất cả trạng thái', value: 'all' },
-              { label: 'LIVE', value: SESSION_STATUS.Live },
-              { label: 'Sắp diễn ra', value: SESSION_STATUS.Scheduled },
-              { label: 'Đã kết thúc', value: SESSION_STATUS.Ended },
-              { label: 'Nháp', value: SESSION_STATUS.Draft },
-              { label: 'Đang trong phòng chờ', value: SESSION_STATUS.WaitingRoom },
-              { label: 'Đang tạm dừng', value: SESSION_STATUS.Paused },
-              { label: 'Có bản phát lại', value: SESSION_STATUS.ReplayAvailable },
+              { label: SESSION_STATUS.Live.label, value: SESSION_STATUS.Live.value },
+              { label: SESSION_STATUS.Created.label, value: SESSION_STATUS.Created.value },
+              { label: SESSION_STATUS.Ended.label, value: SESSION_STATUS.Ended.value },
+              { label: SESSION_STATUS.Cancelled.label, value: SESSION_STATUS.Cancelled.value },
             ]}
           />
+
+          <Select
+            value={privacyFilter}
+            onChange={handlePrivacyFilterChange}
+            className="!w-full md:!w-[180px]"
+            options={[
+              { label: 'Tất cả quyền riêng tư', value: 'all' },
+              { label: `${SESSION_PRIVACY.Public.label} (Public)`, value: SESSION_PRIVACY.Public.value },
+              { label: `${SESSION_PRIVACY.Private.label} (Private)`, value: SESSION_PRIVACY.Private.value },
+              { label: `${SESSION_PRIVACY.Unlisted.label} (Unlisted)`, value: SESSION_PRIVACY.Unlisted.value },
+            ]}
+          />
+
+          {/* <Select
+            value={recordingFilter}
+            onChange={handleRecordingFilterChange}
+            className="!w-full md:!w-[180px]"
+            options={[
+              { label: 'Tất cả ghi hình', value: 'all' },
+              { label: 'Có bản ghi', value: 'true' },
+              { label: 'Không có bản ghi', value: 'false' },
+            ]}
+          /> */}
         </div>
       </div>
 
       {/* Table */}
       <div className="!p-4">
-
         <Table
-          rowKey="id"
+          rowKey={(record) => record.streamSettings?.streamId || record._id || record.id}
           columns={columns}
-          dataSource={filteredAndSortedRooms}
-          loading={isLoading}
-          pagination={{
-            pageSize: 8,
-            showSizeChanger: false,
-          }}
+          dataSource={sortedRooms}
+          loading={isLoading || localLoading}
+          pagination={false}
           bordered
           className="xh-admin-table"
           scroll={{
             x: 1200,
             y: 600,
+          }}
+        />
+      </div>
+
+      {/* Pagination Footer */}
+      <div className="sticky bottom-0 border-t border-[#1E2633] shadow-[0px_-1px_4px_0px_rgba(0,0,0,0.1)]">
+        <RenderPages
+          page={page}
+          limit={limit}
+          totalCount={totalCount}
+          tototlItems={rooms.length}
+          onChange={(newPage, newLimit) => {
+            if (newLimit !== limit) {
+              setLimit(newLimit);
+              setPage(1);
+            } else {
+              setPage(newPage);
+            }
           }}
         />
       </div>

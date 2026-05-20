@@ -1,21 +1,63 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hook/useAuth';
+import { useIsMobile } from '../../hook/useMediaQuery';
 import { rtdb } from '../../core/firebase';
-import { ref, onValue, set, push, onChildAdded } from 'firebase/database';
+import { ref, onValue, set, push, onChildAdded, update } from 'firebase/database';
 import { useAntMedia } from '../../core/useAntMedia';
 import { message, Tooltip, Badge, Tabs, Dropdown, Menu, Modal } from 'antd';
 import CountdownView from './components/CountDownView';
 import { dummyStreams } from '../../core/dummyData'
+import { AdminPanelService } from '../../api';
+
+const api = new AdminPanelService();
+
+const mapRoomData = (mainData) => {
+  if (!mainData) return null;
+  
+  let dateStr = '';
+  let timeStr = '';
+  if (mainData.info?.startAt) {
+    const d = new Date(mainData.info.startAt);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      dateStr = `${year}-${month}-${day}`;
+      timeStr = `${hours}:${minutes}`;
+    }
+  }
+
+  return {
+    ...mainData,
+    id: mainData.streamSettings?.streamId || mainData._id,
+    state: {
+      hostName: mainData.roles?.hostId || 'XHERO Host',
+      roomTitle: mainData.info?.name || 'Phiên livestream',
+      dateStr: dateStr,
+      timeStr: timeStr,
+      status: (mainData.info?.status || 'CREATED').toUpperCase(),
+      privacy: mainData.info?.privacy || 'public',
+      bannerUrl: mainData.info?.banners?.tablet?.[0] || mainData.info?.banners?.mobile?.[0] || '',
+      audioUrl: mainData.inStreamSettings?.countdown?.music || '',
+      videoUrl: mainData.inStreamSettings?.countdown?.video || ''
+    }
+  };
+};
 
 export default function AdminHostStudio() {
   const { _id: roomId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const messagesEndRef = useRef(null);
 
+  const [mobileTab, setMobileTab] = useState('controls'); // controls, chat, hand
   const [isChatVisible, setIsChatVisible] = useState(true);
   const isChatVisibleRef = useRef(true);
 
@@ -24,13 +66,49 @@ export default function AdminHostStudio() {
     isChatVisibleRef.current = isChatVisible;
   }, [isChatVisible]);
 
+  // Fetch details from backend API on mount/roomId change
+  useEffect(() => {
+    if (roomId) {
+      api.actGetDetailLivestream(roomId).then((res) => {
+        console.log("actGetDetailLivestream response:", res);
+        if (res && res.status && res.data?.mainData) {
+          console.log(res);
+          // const formattedRoom = mapRoomData(res.data.mainData);
+          // setRoomInfo(formattedRoom);
+        }
+      }).catch((err) => {
+        console.error("Failed to load livestream details:", err);
+      });
+    }
+  }, [roomId]);
+
   // State for controls
   const [isRecording, setIsRecording] = useState(false);
   const [activeScene, setActiveScene] = useState('focus'); // focus, presentation, dual
   const [isWaiting, setIsWaiting] = useState(true);
 
   // State for data
-  const [roomInfo, setRoomInfo] = useState(null);
+  const [roomInfo, setRoomInfo] = useState(() => {
+    const passedRoom = location.state?.roomInfo;
+    if (passedRoom) {
+      if (passedRoom.state) return passedRoom;
+      return {
+        id: passedRoom.id,
+        state: {
+          hostName: passedRoom.host || passedRoom.hostName,
+          roomTitle: passedRoom.title || passedRoom.roomTitle,
+          dateStr: passedRoom.dateStr,
+          timeStr: passedRoom.timeStr,
+          status: passedRoom.status || 'CREATED',
+          privacy: passedRoom.privacy || 'public',
+          bannerUrl: passedRoom.bannerUrl || '',
+          audioUrl: passedRoom.audioUrl || '',
+          videoUrl: passedRoom.videoUrl || ''
+        }
+      };
+    }
+    return null;
+  });
   const [viewerCount, setViewerCount] = useState(0);
   const [duration, setDuration] = useState('00:00:00');
   const [viewerName, setViewerName] = useState('');
@@ -190,7 +268,6 @@ export default function AdminHostStudio() {
       if (data) {
         setRoomInfo(data);
         setViewerCount(Object.keys(data?.viewers || {}).length);
-        
         if (data.state?.isLive === true || data.state?.status === 'LIVE') {
           setIsWaiting(false);
         } else {
@@ -245,6 +322,33 @@ export default function AdminHostStudio() {
     }
   }, [user]);
 
+  const handleCancelSession = () => {
+    Modal.confirm({
+      title: <span className="text-white font-bold">Xác nhận hủy phiên livestream?</span>,
+      content: <span className="text-gray-400">Bạn có chắc chắn muốn hủy phiên livestream này không? Hành động này không thể hoàn tác và tất cả khán giả sẽ bị ngắt kết nối.</span>,
+      okText: 'Hủy phiên',
+      okType: 'danger',
+      cancelText: 'Đóng',
+      centered: true,
+      className: 'dark-modal',
+      onOk: async () => {
+        try {
+          const roomStateRef = ref(rtdb, `rooms/${roomId}/state`);
+          await update(roomStateRef, {
+            status: 'cancelled',
+            isLive: false,
+            isCancelled: true
+          });
+          message.success('Đã hủy phiên livestream thành công!');
+          navigate('/home');
+        } catch (error) {
+          console.error('Failed to cancel session:', error);
+          message.error('Không thể hủy phiên livestream. Vui lòng thử lại.');
+        }
+      }
+    });
+  };
+
   const handleStopSession = () => {
     Modal.confirm({
       title: <span className="text-white font-bold">Kết thúc phiên livestream?</span>,
@@ -255,7 +359,7 @@ export default function AdminHostStudio() {
       centered: true,
       className: 'dark-modal',
       onOk() {
-        stopPublishing();
+        stopPlaying();
         navigate('/home');
       },
     });
@@ -267,11 +371,309 @@ export default function AdminHostStudio() {
     { id: 'dual', name: 'Dual Cam', icon: <IconUsers className="w-5 h-5" />, desc: 'Chuyên gia & Viewer tương tác' },
   ];
 
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-screen bg-[#090D14] text-white overflow-hidden font-sans">
+        {/* Pre-live Countdown Overlay */}
+        {isWaiting && (
+          <CountdownView roomInfo={roomInfo} roomId={roomId} />
+        )}
+
+        {/* TOP COMPACT STATS BAR */}
+        <header className="h-14 border-b border-[#1E2633] bg-[#0D1424] flex items-center justify-between px-4 shrink-0 z-30">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-red-500">{roomInfo?.state?.status || 'OFFLINE'}</span>
+            <span className="text-xs text-[#7E8CA8] font-mono ml-2">{duration}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-[#1A2333] px-2.5 py-1 rounded-md border border-[#2A3441] flex items-center gap-1.5">
+              <IconUsers className="w-3.5 h-3.5 text-[#3B82F6]" />
+              <span className="text-xs font-bold">{viewerCount}</span>
+            </div>
+            <button onClick={() => navigate('/home')} className="text-[#7E8CA8] hover:text-white p-1">
+              <IconLogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* PINNED VIDEO PLAYER */}
+        <div className="w-full aspect-video bg-black relative border-b border-[#1E2633] shrink-0">
+          {/* Background for Presentation Scene */}
+          {activeScene === 'presentation' && (
+            <div className="absolute inset-0 bg-[#0D1424] flex items-center justify-center overflow-hidden">
+              <div className="flex flex-col items-center gap-3 text-white/5">
+                <IconLayout className="w-20 h-20" />
+                <h2 className="text-xs font-bold tracking-widest uppercase">Slide Content</h2>
+              </div>
+            </div>
+          )}
+
+          {/* The main video element (Host) */}
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className={`transition-all duration-700 shadow-2xl object-cover ${activeScene === 'presentation'
+              ? 'absolute bottom-3 right-3 w-1/4 aspect-video rounded-xl border border-[#D4AF37] z-20'
+              : activeScene === 'dual'
+                ? 'absolute left-0 top-0 w-1/2 h-full z-20'
+                : 'w-full h-full'
+              }`}
+          />
+
+          {/* Scene-specific Overlays */}
+          {activeScene === 'presentation' && (
+            <div className="absolute bottom-4 right-[calc(0.75rem+4px)] z-30 px-1 py-0.5 bg-[#D4AF37] text-black text-[8px] font-bold rounded uppercase">
+              Chuyên gia
+            </div>
+          )}
+
+          {activeScene === 'dual' && (
+            <div className="absolute inset-0 flex bg-[#0D1424]">
+              {/* Left Side (Host) */}
+              <div className="flex-1 relative border-r border-[#D4AF37]/20">
+                {/* Handled by absolute remoteVideoRef */}
+              </div>
+              {/* Right Side (Guest) */}
+              <div className="flex-1 relative bg-black flex items-center justify-center">
+                <div className="text-center p-4">
+                  <div className="w-10 h-10 bg-[#3B82F6]/10 rounded-full flex items-center justify-center mx-auto mb-2 text-[#3B82F6]">
+                    <IconUsers className="w-5 h-5" />
+                  </div>
+                  <p className="text-[10px] font-medium italic opacity-50">Đang chờ khách mời...</p>
+                </div>
+                <div className="absolute bottom-4 left-4 z-30 px-2 py-0.5 bg-[#3B82F6] text-white text-[8px] font-bold rounded uppercase">
+                  Khách mời
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Status Overlays */}
+          <div className="absolute top-3 left-3 flex gap-2 z-30">
+            {roomInfo?.state?.status === 'LIVE' && (
+              <div className="flex items-center gap-1.5 bg-red-600 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                <span className="text-[8px] font-bold uppercase">On Air</span>
+              </div>
+            )}
+            {isRecording && (
+              <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                <span className="text-[8px] font-bold uppercase">Rec</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* TAB SELECTOR */}
+        <div className="flex bg-[#0D1424] border-b border-[#1E2633] shrink-0">
+          <button
+            onClick={() => setMobileTab('controls')}
+            className={`flex-1 py-3.5 text-[10px] font-bold uppercase tracking-wider transition-all relative ${mobileTab === 'controls' ? 'text-[#D4AF37]' : 'text-[#7E8CA8]'}`}
+          >
+            Điều khiển
+            {mobileTab === 'controls' && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37]"></div>}
+          </button>
+          <button
+            onClick={() => {
+              setMobileTab('chat');
+              setHasNewMessage(false);
+            }}
+            className={`flex-1 py-3.5 text-[10px] font-bold uppercase tracking-wider transition-all relative ${mobileTab === 'chat' ? 'text-[#D4AF37]' : 'text-[#7E8CA8]'}`}
+          >
+            <div className="flex items-center justify-center gap-1.5">
+              Chat
+              {hasNewMessage && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>}
+            </div>
+            {mobileTab === 'chat' && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37]"></div>}
+          </button>
+          <button
+            onClick={() => setMobileTab('hand')}
+            className={`flex-1 py-3.5 text-[10px] font-bold uppercase tracking-wider transition-all relative ${mobileTab === 'hand' ? 'text-[#D4AF37]' : 'text-[#7E8CA8]'}`}
+          >
+            <div className="flex items-center justify-center gap-1.5">
+              Giơ tay
+              {waitingList.length > 0 && (
+                <span className="bg-red-500 text-white text-[8px] px-1 rounded-full">{waitingList.length}</span>
+              )}
+            </div>
+            {mobileTab === 'hand' && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37]"></div>}
+          </button>
+        </div>
+
+        {/* TAB CONTENT PANEL */}
+        <div className="flex-1 overflow-y-auto bg-[#090D14]">
+          {mobileTab === 'controls' && (
+            <div className="p-4 space-y-6">
+              {/* Active Scenes */}
+              <div>
+                <div className="text-[10px] font-bold text-[#4F5E7B] uppercase tracking-wider mb-3">Chế độ hiển thị (Scenes)</div>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {scenes.map((scene) => (
+                    <button
+                      key={scene.id}
+                      onClick={() => setActiveScene(scene.id)}
+                      className={`p-2 transition-all duration-300 rounded-xl border-2 flex flex-col items-center justify-center text-center ${activeScene === scene.id
+                        ? 'border-[#D4AF37] bg-[#D4AF37]/5'
+                        : 'border-[#1E2633] bg-[#151D2C]'
+                        }`}
+                    >
+                      <div className="scale-75 mb-1 opacity-80">{scene.icon}</div>
+                      <span className="text-[10px] font-bold truncate w-full">{scene.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stream Info & Quick actions */}
+              <div className="bg-[#0D1424] p-4 rounded-xl border border-[#1E2633] space-y-3">
+                <div className="text-[9px] font-bold text-[#7E8CA8] uppercase tracking-wider">Thông tin phiên</div>
+                <h4 className="text-sm font-bold text-white leading-tight">{roomInfo?.state?.roomTitle || 'Chưa cập nhật'}</h4>
+                <div className="flex items-center gap-2">
+                  <IconUsers className="w-3.5 h-3.5 text-[#7E8CA8]" />
+                  <span className="text-xs text-[#CBD5E1]">{viewerCount} người xem</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                {/* Start/Stop Recording */}
+                <button
+                  onClick={() => setIsRecording(!isRecording)}
+                  className={`w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl transition-all duration-300 font-bold uppercase tracking-wider text-xs shadow-md ${isRecording
+                    ? 'bg-[#FFD700] text-black shadow-[#FFD700]/20'
+                    : 'bg-[#1E2633] text-red-500 border border-white/5 hover:text-white'
+                    }`}
+                >
+                  <div className={`w-2.5 h-2.5 rounded-full ${isRecording ? 'bg-red-800 animate-pulse' : 'bg-red-500'}`}></div>
+                  {isRecording ? "Đang ghi hình" : "Bắt đầu ghi hình"}
+                </button>
+
+                {/* Cancel Stream */}
+                <button
+                  onClick={handleCancelSession}
+                  disabled={roomInfo?.state?.status === 'cancelled'}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-600/20 disabled:bg-[#151D2C] disabled:text-[#4F5E7B] text-red-500 rounded-xl transition-all font-bold uppercase tracking-wider text-[11px] border border-red-600/30"
+                >
+                  Hủy phiên live
+                </button>
+
+                {/* End Session */}
+                <button
+                  onClick={handleStopSession}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all font-bold uppercase tracking-wider text-[11px] border border-red-500/30"
+                >
+                  Kết thúc phiên
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mobileTab === 'chat' && (
+            <div className="h-full flex flex-col p-4">
+              {/* Chat Header lock */}
+              <div className="flex items-center justify-between pb-3 border-b border-[#1E2633] mb-3">
+                <div className="text-[10px] font-bold text-[#4F5E7B] uppercase tracking-wider">Trò chuyện trực tiếp</div>
+                <button
+                  onClick={handleToggleLock}
+                  className={`px-2.5 py-1 rounded text-[8px] font-bold uppercase ${isChatLocked ? 'bg-red-500/20 text-red-500' : 'bg-[#151D2C] text-[#7E8CA8]'}`}
+                >
+                  {isChatLocked ? 'Đã khóa chat' : 'Khóa chat'}
+                </button>
+              </div>
+
+              {/* Pinned Message */}
+              {pinnedMessage && (
+                <div className="mb-3 bg-[#D4AF37]/10 border-l-2 border-[#D4AF37] p-2 rounded-r-lg">
+                  <div className="text-[9px] font-bold text-[#D4AF37] uppercase mb-0.5">Đã ghim</div>
+                  <div className="text-xs text-gray-200 line-clamp-1 italic">"{pinnedMessage.text}"</div>
+                </div>
+              )}
+
+              {/* Chat Stream Messages list */}
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar min-h-[250px]">
+                {messages.map((msg, i) => (
+                  <div key={msg.id || i}>
+                    <div className="flex items-baseline gap-1.5 mb-0.5">
+                      <span className={`text-[11px] font-bold ${msg.role === 'host' ? 'text-[#D4AF37]' : 'text-[#3B82F6]'}`}>
+                        {msg.senderName}
+                      </span>
+                    </div>
+                    <div className="bg-[#151D2C] p-2.5 rounded-lg border border-[#1E2633] text-xs text-gray-300 inline-block max-w-[90%]">
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Text Input area */}
+              <div className="pt-3 border-t border-[#1E2633] mt-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    disabled={isChatLocked}
+                    placeholder={isChatLocked ? "Khung chat đang tạm khóa..." : "Gửi thông báo..."}
+                    className="w-full bg-[#151D2C] border border-[#1E2633] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#D4AF37]"
+                  />
+                  <button
+                    disabled={isChatLocked}
+                    className="absolute right-1.5 top-1.5 p-1 text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded"
+                  >
+                    <IconRadio className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mobileTab === 'hand' && (
+            <div className="p-4">
+              <div className="text-[10px] font-bold text-[#4F5E7B] uppercase tracking-wider mb-4">Khán giả giơ tay tương tác</div>
+              <div className="space-y-2.5">
+                {waitingList.map((item) => (
+                  <div key={item.id} className="bg-[#1A2333]/50 border border-[#1E2633] rounded-xl p-3 flex items-center gap-3">
+                    <img src={item.avatar} className="w-8 h-8 rounded-full border border-[#D4AF37]/20 object-cover" alt="" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold truncate text-white leading-tight">{item.name}</div>
+                      <div className="text-[9px] text-[#7E8CA8] mt-0.5">Đã chờ {item.waitTime}</div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => {
+                          setActiveScene('dual');
+                          message.success(`Đã chấp nhận tương tác với ${item.name}`);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center bg-green-500/10 text-green-500 hover:bg-green-600 hover:text-white rounded-lg transition-all border border-green-500/20"
+                        title="Chấp thuận"
+                      >
+                        <IconCheck className="w-4 h-4" />
+                      </button>
+                      <button
+                        className="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all border border-red-500/20"
+                        title="Từ chối"
+                      >
+                        <IconX className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-[1fr_3fr_1fr] h-screen bg-[#090D14] text-white overflow-hidden font-sans">
       {/* Pre-live Countdown Overlay */}
       {isWaiting && (
-        <CountdownView roomInfo={roomInfo} />
+        <CountdownView roomInfo={roomInfo} roomId={roomId} />
       )}
 
       {/* LEFT SIDEBAR: Navigation & Scene Switcher */}
@@ -337,14 +739,24 @@ export default function AdminHostStudio() {
         <div className="p-6 border-t border-[#1E2633] mt-auto">
           <button
             onClick={handleStopSession}
-            className="w-full flex items-center justify-center gap-3 px-4 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-xl transition-all duration-300 font-bold uppercase tracking-widest text-xs shadow-lg shadow-red-500/5 group"
+            className="w-full flex items-center justify-center gap-3 px-4 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-xl transition-all duration-300 font-bold uppercase tracking-widest text-xs shadow-lg shadow-red-500/5 group cursor-pointer"
           >
             <IconStop className="w-5 h-5 group-hover:scale-110 transition-transform" />
             Kết thúc phiên
           </button>
+
+          <button
+            onClick={handleCancelSession}
+            disabled={roomInfo?.state?.status === 'cancelled'}
+            className="w-full mt-3 flex items-center justify-center gap-3 px-4 py-3 bg-red-600/20 hover:bg-red-600 disabled:bg-[#151D2C] disabled:text-[#4F5E7B] disabled:border-transparent text-white border border-red-600/40 rounded-xl transition-all duration-300 font-bold uppercase tracking-widest text-xs shadow-lg shadow-red-600/5 group cursor-pointer"
+          >
+            <IconX className="w-4 h-4 group-hover:scale-110 transition-transform text-red-500 group-hover:text-white" />
+            Hủy phiên live
+          </button>
+
           <button
             onClick={() => navigate('/home')}
-            className="w-full mt-4 flex items-center gap-3 px-4 py-3 text-[11px] font-medium text-[#4F5E7B] hover:text-white transition-all uppercase tracking-wider"
+            className="w-full mt-3 flex items-center gap-3 px-4 py-3 text-[11px] font-medium text-[#4F5E7B] hover:text-white transition-all uppercase tracking-wider"
           >
             <IconLogOut className="w-4 h-4" />
             Về trang chủ

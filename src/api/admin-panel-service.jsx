@@ -12,6 +12,18 @@ class AdminPanelService extends NewService {
   actPostNotification = (payload) => {
     return this.post(this.apiUlr() + '/admin/notifications', payload);
   }
+
+  actCreateNewLivestream = (payload) => {
+    return this.post(this.apiUlr() + '/api/admin/streams', payload);
+  }
+
+  actGetLivestreamSessions = () => {
+    return this.get(this.apiUlr() + '/api/admin/streams');
+  }
+
+  actGetDetailLivestream = (id) => {
+    return this.get(this.apiUlr() + '/api/admin/streams/' + id);
+  }
 }
 
 export default AdminPanelService;

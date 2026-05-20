@@ -29,9 +29,9 @@ export function parseRoomsData(data) {
 
       let calculatedStatus = '';
       if (isLive) {
-        calculatedStatus = SESSION_STATUS.Live;
+        calculatedStatus = SESSION_STATUS.Live.value;
       } else {
-        calculatedStatus = SESSION_STATUS.Ended; // default if no valid time
+        calculatedStatus = SESSION_STATUS.Ended.value; // default if no valid time
         if (state.dateStr && state.timeStr && state.dateStr !== 'Chưa xác định') {
           try {
             const parts = state.dateStr.includes('/') ? state.dateStr.split('/') : state.dateStr.split('-');
@@ -47,7 +47,7 @@ export function parseRoomsData(data) {
               
               const roomTime = new Date(year, month, day, hour, minute).getTime();
               if (roomTime > Date.now()) {
-                calculatedStatus = SESSION_STATUS.Scheduled;
+                calculatedStatus = SESSION_STATUS.Created.value;
               }
             }
           } catch (e) {

@@ -60,9 +60,9 @@ export default function Home() {
 
           let calculatedStatus = '';
           if (isLive) {
-            calculatedStatus = SESSION_STATUS.Live;
+            calculatedStatus = SESSION_STATUS.Live.value;
           } else {
-            calculatedStatus = SESSION_STATUS.Ended; // default if no valid time
+            calculatedStatus = SESSION_STATUS.Ended.value; // default if no valid time
             if (state.dateStr && state.timeStr && state.dateStr !== 'Chưa xác định') {
               try {
                 const parts = state.dateStr.includes('/') ? state.dateStr.split('/') : state.dateStr.split('-');
@@ -78,7 +78,7 @@ export default function Home() {
 
                   const roomTime = new Date(year, month, day, hour, minute).getTime();
                   if (roomTime > Date.now()) {
-                    calculatedStatus = SESSION_STATUS.Scheduled;
+                    calculatedStatus = SESSION_STATUS.Created.value;
                   }
                 }
               } catch (e) {
@@ -94,7 +94,8 @@ export default function Home() {
             viewers,
             status: calculatedStatus,
             dateStr: state.dateStr || 'Chưa xác định',
-            timeStr: state.timeStr || '00:00'
+            timeStr: state.timeStr || '00:00',
+            privacy: state.privacy || 'public'
           });
         });
       }
@@ -114,7 +115,7 @@ export default function Home() {
 
       prevLiveRoomsRef.current = currentLiveRooms;
 
-      setRooms(parsedRooms.sort((a, b) => (a.status === SESSION_STATUS.Live ? -1 : 1)));
+      setRooms(parsedRooms.sort((a, b) => (a.status === SESSION_STATUS.Live.value ? -1 : 1)));
       // setTotalViewers(viewerTotal);
       // setActiveRooms(liveCount);
       // setOfflineRooms(offlineCount);
@@ -143,7 +144,7 @@ export default function Home() {
         <SideBar tab={tab} setTab={setTab} isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
         <main className="flex-1 p-2 md:p-6 overflow-y-auto">
           {tab === 'sessionList' && (
-            <SessionList rooms={rooms} isLoading={false} setTab={setTab} setSelectedRoomId={setSelectedRoomId} />
+            <SessionList isLoading={false} setTab={setTab} setSelectedRoomId={setSelectedRoomId} />
           )}
           {tab === 'newSession' && (
             <NewSession setTab={setTab} />

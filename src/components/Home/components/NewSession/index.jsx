@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DatePicker, ConfigProvider, theme, Button, message, Switch } from 'antd';
 import dayjs from 'dayjs';
+import vi_VN from 'antd/es/date-picker/locale/vi_VN';
 import images from '../../../../config/images';
 import FileUploadSection from '../components/FileUploadSection';
 import { AdminPanelService } from '../../../../api';
@@ -8,6 +9,9 @@ import { useUI } from '../../../../hook/useUI';
 import { rtdb } from '../../../../core/firebase';
 import { ref, set } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../hook/useAuth';
+
+const api = new AdminPanelService()
 
 const getEmbedUrl = (url) => {
   if (!url) return '';
@@ -46,9 +50,10 @@ export default function NewSession({ setTab }) {
     notifyTargetIds: '',
     notifyTime: '',
     notifyImageFile: null,
-    roomIdInput: '',
+    streamIdInput: '',
     hasPassword: false,
     roomPassword: '',
+    privacy: 'public',
   });
 
   const [bannerFile, setBannerFile] = useState(null);
@@ -60,6 +65,7 @@ export default function NewSession({ setTab }) {
 
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+  const { user } = useAuth();
   const { loading, setLoading } = useUI();
   const audioRef = useRef(null);
   const navigate = useNavigate();
@@ -83,7 +89,7 @@ export default function NewSession({ setTab }) {
     if (name === 'startTime' && !value) error = 'Vui lòng chọn thời gian bắt đầu';
     if (name === 'notifyTitle' && !value) error = 'Vui lòng nhập tiêu đề thông báo';
     if (name === 'notifyContent' && !value) error = 'Vui lòng nhập nội dung thông báo';
-    if (name === 'roomIdInput' && !value.trim()) error = 'Vui lòng nhập Stream ID';
+    if (name === 'streamIdInput' && !value.trim()) error = 'Vui lòng nhập Stream ID';
     if (name === 'roomPassword' && formData.hasPassword && !value.trim()) error = 'Vui lòng nhập mật mã phòng';
 
     setErrors(prev => ({ ...prev, [name]: error }));
@@ -115,7 +121,7 @@ export default function NewSession({ setTab }) {
     const isValidTime = validateField('startTime', formData.startTime);
     const isValidNotifyTitle = validateField('notifyTitle', formData.notifyTitle);
     const isValidNotifyContent = validateField('notifyContent', formData.notifyContent);
-    const isValidRoomId = validateField('roomIdInput', formData.roomIdInput);
+    const isValidRoomId = validateField('streamIdInput', formData.streamIdInput);
     const isValidPassword = formData.hasPassword ? validateField('roomPassword', formData.roomPassword) : true;
     if (!isValidTitle) {
       message.error('Vui lòng điền tên phiên livestream');
@@ -142,52 +148,93 @@ export default function NewSession({ setTab }) {
       return;
     }
     // 1. Sync room title to Ant Media Server via REST API
-    try {
-      const apiUrl = getAntMediaApiUrl();
-      await fetch(`${apiUrl}/rest/v2/broadcasts/${formData.roomIdInput}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: formData.title })
-      });
-      console.log('Successfully synced room title to Ant Media Server:', formData.title);
-    } catch (apiErr) {
-      console.warn('Failed to sync room title to Ant Media Server:', apiErr);
-    }
+    // try {
+    //   const apiUrl = getAntMediaApiUrl();
+    //   await fetch(`${apiUrl}/rest/v2/broadcasts/${formData.streamIdInput}`, {
+    //     method: 'PUT',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({ name: formData.title })
+    //   });
+    //   console.log('Successfully synced room title to Ant Media Server:', formData.title);
+    // } catch (apiErr) {
+    //   console.warn('Failed to sync room title to Ant Media Server:', apiErr);
+    // }
 
-    // 2. Initialize Session in Firebase RTDB
-    setLoading(true);
     try {
-      const roomRef = ref(rtdb, `rooms/${formData.roomIdInput}`);
-      const sessionData = {
-        id: formData.roomIdInput,
-        title: formData.title,
-        hostName: formData.hostName,
-        state: {
-          isLive: false,
-          status: 'scheduled',
-          roomTitle: formData.title,
-          hostName: formData.hostName,
-          startTime: formData.startTime,
-          dateStr: dayjs(formData.startTime).format('DD/MM/YYYY'),
-          timeStr: dayjs(formData.startTime).format('HH:mm'),
-          banner: formData.bannerFile?.url || '',
-          bannerFit: formData.bannerFit,
-          description: formData.description,
-          videoUrl: formData.videoUrl,
-          audioUrl: formData.audioFile?.url || '',
-          createdAt: Date.now()
-        }
+      setLoading(true);
+      const baseLink = import.meta.env.NEXT_PUBLIC_LIVESTREAM_URL;
+      const hostUrl = `${baseLink}/host/${formData.streamIdInput}`;
+      const joinUrl = `${baseLink}/live/${formData.streamIdInput}`;
+
+      const startAtStr = formData.startTime ? dayjs(formData.startTime).format('YYYY-MM-DD HH:mm') : null;
+
+      const payload = {
+        authenticateSettings: {
+          username: null,
+          password: null
+        },
+        info: {
+          name: formData.title || undefined,
+          description: formData.description || '',
+          thumbnailUrl: {
+            mobile: formData.bannerFile?.url || '',
+            tablet: formData.bannerFile?.url || ''
+          },
+          banners: {
+            mobile: formData.bannerFile?.url ? [formData.bannerFile.url] : [],
+            tablet: formData.bannerFile?.url ? [formData.bannerFile.url] : []
+          },
+          privacy: formData.privacy,
+          startAt: startAtStr
+        },
+        streamSettings: {
+          streamId: formData.streamIdInput || '',
+          // rtmp: {
+          // serverUrl: `rtmp://${import.meta.env.NEXT_PUBLIC_ANT_MEDIA_SERVER || window.location.hostname}/LiveApp`,
+          // streamKey: formData.streamIdInput || ''
+          // },
+          webrtc: {
+            publishUrl: hostUrl,
+            playUrl: joinUrl
+          },
+          // hls: {
+          // playbackUrl: `https://${import.meta.env.NEXT_PUBLIC_ANT_MEDIA_SERVER || window.location.hostname}/LiveApp/streams/${formData.streamIdInput}.m3u8`
+          // }
+        },
+        accessSettings: {
+          qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`,
+          accessPassword: formData.hasPassword ? formData.roomPassword : null
+        },
+        inStreamSettings: {
+          countdown: {
+            music: formData.audioFile?.url || '',
+            video: formData.videoUrl || '',
+            background: formData.bannerFile?.url || ''
+          },
+        },
+        roles: {
+          hostId: user.id,
+          broadcasters: [user.id],
+          moderators: [user.id],
+        },
+        metadata: {}
       };
 
-      await set(roomRef, sessionData);
-      message.success('Đã khởi tạo phiên livestream thành công!');
-    } catch (firebaseErr) {
-      console.error('Failed to initialize session in Firebase:', firebaseErr);
-      message.error('Lỗi nghiêm trọng: Không thể lưu thông tin lên Firebase. Vui lòng thử lại.');
+      const res = await api.actCreateNewLivestream(payload);
+      if (res && (res.success === false || res.status === false)) {
+        if (res.message === 'Stream id is already being used. Please change stream id or keep it empty') message.error('Stream ID đã được sử dụng. Vui lòng chọn ID khác hoặc để trống.');
+        else message.error(res.message);
+        setLoading(false);
+        return;
+      }
       setLoading(false);
-      return; // Stop here if Firebase fails
+      message.success('Đã khởi tạo phiên livestream thành công!');
+    } catch (err) {
+      console.warn(err);
+      setLoading(false);
+      return;
     }
 
     // 3. Handle Notification (Optional background task)
@@ -206,8 +253,37 @@ export default function NewSession({ setTab }) {
         message.warning('Phiên live đã tạo nhưng không thể gửi thông báo.');
       }
     }
+
+    let dateStr = 'Chưa xác định';
+    let timeStr = '00:00:00';
+
+    if (formData.startTime) {
+      try {
+        const date = dayjs(formData.startTime);
+
+        if (date.isValid()) {
+          dateStr = date.format('DD/MM/YYYY');
+          timeStr = date.format('HH:mm:ss');
+        }
+      } catch (e) {
+        console.error('Error parsing startTime in navigation:', e);
+      }
+    }
+
     setLoading(false);
-    navigate('/admin-host-studio/' + formData.roomIdInput);
+    navigate('/admin-host-studio/' + formData.streamIdInput, {
+      state: {
+        roomInfo: {
+          host: formData.hostName,
+          title: formData.title,
+          dateStr: dateStr,
+          timeStr: timeStr,
+          bannerUrl: formData.bannerFile?.url || '',
+          audioUrl: formData.audioFile?.url || '',
+          videoUrl: formData.videoUrl || '',
+        }
+      }
+    });
   };
 
   return (
@@ -255,13 +331,13 @@ export default function NewSession({ setTab }) {
                         </label>
                         <input
                           type="text"
-                          name="roomIdInput"
-                          value={formData.roomIdInput}
+                          name="streamIdInput"
+                          value={formData.streamIdInput}
                           onChange={handleChange}
                           placeholder="Ví dụ: room_123"
-                          className={`w-full bg-[#151D2C] border ${errors.roomIdInput ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
+                          className={`w-full bg-[#151D2C] border ${errors.streamIdInput ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
                         />
-                        {errors.roomIdInput && <span className="text-red-500 text-xs mt-1 block">{errors.roomIdInput}</span>}
+                        {errors.streamIdInput && <span className="text-red-500 text-xs mt-1 block">{errors.streamIdInput}</span>}
                       </div>
 
                       <div className="bg-[#111827] p-4 rounded-xl border border-[#1E2633] space-y-4">
@@ -295,6 +371,46 @@ export default function NewSession({ setTab }) {
                             {errors.roomPassword && <span className="text-red-500 text-xs mt-1 block">{errors.roomPassword}</span>}
                           </div>
                         )}
+                      </div>
+
+                      <div className="bg-[#111827] p-4 rounded-xl border border-[#1E2633] space-y-4">
+                        <div>
+                          <h5 className="text-white text-sm font-medium">Quyền riêng tư (Privacy)</h5>
+                          <p className="text-xs text-[#7E8CA8]">Thiết lập quyền truy cập cho phiên livestream</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {[
+                            { value: 'public', label: 'Công khai (Public)', desc: 'Mọi người đều có thể tìm thấy và xem được' },
+                            { value: 'private', label: 'Riêng tư (Private)', desc: 'Chỉ những người có link hoặc quyền mới được xem' },
+                            { value: 'unlisted', label: 'Không hiển thị (Unlisted)', desc: 'Chỉ người có link mới xem được (ẩn khỏi danh sách)' }
+                          ].map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, privacy: opt.value }))}
+                              className={`p-3 text-left rounded-xl border transition-all flex flex-col justify-between ${formData.privacy === opt.value
+                                ? 'border-[#D4AF37] bg-[#D4AF37]/5 shadow-[0_0_12px_rgba(212,175,55,0.15)]'
+                                : 'border-[#2A3441] bg-[#151D2C] hover:border-[#CBD5E1]/30'
+                                }`}
+                            >
+                              <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 ${formData.privacy === opt.value ? 'border-[#D4AF37]' : 'border-[#4F5E7B]'
+                                    }`}>
+                                    {formData.privacy === opt.value && (
+                                      <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"></div>
+                                    )}
+                                  </div>
+                                  <span className={`text-xs font-bold transition-colors ${formData.privacy === opt.value ? 'text-white' : 'text-[#7E8CA8]'
+                                    }`}>
+                                    {opt.label}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-[#4F5E7B] leading-relaxed">{opt.desc}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -341,6 +457,7 @@ export default function NewSession({ setTab }) {
                                 validateField('startTime', val);
                               }}
                               style={{ width: '100%' }}
+                              locale={vi_VN}
                             />
                           </ConfigProvider>
                           {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
@@ -354,8 +471,8 @@ export default function NewSession({ setTab }) {
                       Nội dung truyền thông
                     </h4>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                        <div className="flex flex-col h-full">
                           <label className="block text-sm text-[#7E8CA8] mb-1">
                             Ảnh Banner
                           </label>
@@ -369,22 +486,10 @@ export default function NewSession({ setTab }) {
                               setFormData((prev) => ({ ...prev, bannerFile: file }));
                               setBannerFile(file);
                             }}
-                          // onChange={handleBannerUpload}
-                          // title="Nhấp để tải ảnh lên"
-                          // description="PNG, JPG, GIF lên đến 5MB"
+                            className="flex-1"
                           />
-                          <div className="mt-3 flex gap-5">
-                            <label className="flex items-center gap-2 cursor-pointer text-sm text-[#7E8CA8] hover:text-white transition-colors">
-                              <input type="radio" name="bannerFit" value="cover" checked={formData.bannerFit === 'cover'} onChange={handleChange} className="accent-[#3B82F6] w-4 h-4" />
-                              Phủ kín (Cover)
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer text-sm text-[#7E8CA8] hover:text-white transition-colors">
-                              <input type="radio" name="bannerFit" value="contain" checked={formData.bannerFit === 'contain'} onChange={handleChange} className="accent-[#3B82F6] w-4 h-4" />
-                              Thu gọn (Contain)
-                            </label>
-                          </div>
                         </div>
-                        <div>
+                        <div className="flex flex-col h-full">
                           <label className="block text-sm text-[#7E8CA8] mb-1">
                             Âm thanh/Nhạc nền
                           </label>
@@ -398,9 +503,7 @@ export default function NewSession({ setTab }) {
                               setFormData((prev) => ({ ...prev, audioFile: file }));
                               setAudioFile(file);
                             }}
-                          // onChange={handleAudioUpload}
-                          // title="Nhấp để tải âm thanh"
-                          // description="MP3, WAV, OGG lên đến 15MB"
+                            className="flex-1"
                           />
                         </div>
                       </div>

@@ -11,7 +11,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
-import StatusBadgeLivestream from '../components/StatusBadgeLivestream';
+import { StatusBadgeLivestream } from '../components/StatusBadgeLivestream';
 
 export default function Statistics({ rooms = [], selectedRoomId, setSelectedRoomId }) {
   const [historyData, setHistoryData] = useState({ lineData: [], barData: [] });

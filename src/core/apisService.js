@@ -158,11 +158,11 @@ export default class NewService {
       const response = await this.newAxios.request(opts);
       return response?.data;
     } catch (err) {
-      if (err.response?.status === 401) {
+      if (err?.response?.status === 401) {
         localStorage.removeItem(ACCESS_TOKEN_ERP_KEY);
         window.location.reload();
       }
-      throw err.response;
+      throw err?.response || err;
     }
   }
 

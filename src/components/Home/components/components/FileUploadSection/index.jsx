@@ -12,6 +12,7 @@ export default function FileUploadSection({
   setUploadedFile,
   setUploadingFile,
   onChange,
+  className = '',
 }) {
   const fileInputRef = useRef(null);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -152,7 +153,7 @@ export default function FileUploadSection({
         : uploadedFile
           ? 'border-[#3B82F6] bg-[#151D2C]'
           : 'border-[#2A3441] bg-[#151D2C] hover:border-[#3B82F6] hover:bg-[#1A2333]'
-        }`}
+        } ${className}`}
       onDragEnter={(e) => {
         e.preventDefault();
         e.stopPropagation();

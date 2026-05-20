@@ -8,5 +8,15 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  envPrefix: ['VITE_', 'NEXT_PUBLIC_', 'REACT_APP_'],
+  envPrefix: ['NEXT_PUBLIC_'],
+  server: {
+    proxy: {
+      '/ant-media-api': {
+        target: 'http://live.xheroapp.com:5443',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ant-media-api/, ''),
+        secure: false,
+      }
+    }
+  }
 })
