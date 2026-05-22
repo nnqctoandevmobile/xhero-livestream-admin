@@ -197,3 +197,49 @@ select {
 .ant-table-content::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
+
+
+/* ==========================================
+   Premium Dark Modal (.dark-modal) Styles
+   ========================================== */
+
+.dark-modal .ant-modal-container {
+  background-color: #0D1424 !important;
+  border: 1px solid #1E2633 !important;
+  border-radius: 20px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.dark-modal .ant-modal-header {
+  background: #0D1424;
+  border: 1px solid #1E2633;
+  padding: 10px;
+  text-align: center;
+}
+
+.dark-modal .ant-modal-title {
+  font-size: 18px !important;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-family: sans-serif !important;
+}
+
+.dark-modal .ant-modal-body {
+  padding: 20px !important;
+  margin-top: -10px;
+}
+
+.dark-modal .ant-modal-close {
+  color: #1a1a1a;
+  font-weight: 700;
+  top: 6px;
+  right: 10px;
+}
+
+.dark-modal .ant-select-selection-item {
+  font-size: 16px !important;
+  font-family: sans-serif !important;
+  color: #1a1a1a;
+  font-weight: 500;
+}

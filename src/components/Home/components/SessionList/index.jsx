@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Badge, Button, Input, Select, Table } from 'antd';
+import { Badge, Button, Input, Select, Table, Modal, message } from 'antd';
 import { SESSION_STATUS, SESSION_PRIVACY } from '../../../../core/constants';
 import { StatusBadgeLivestream, PrivacyBadgeLivestream } from '../components/StatusBadgeLivestream';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +33,9 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
   const [recordingFilter, setRecordingFilter] = useState('all');
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination & Server Side Filter states
   const [page, setPage] = useState(1);
@@ -81,8 +84,8 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
         const roomData = Array.isArray(res)
           ? res
           : (res.data && Array.isArray(res.data.data)
-              ? res.data.data
-              : (res.data && Array.isArray(res.data) ? res.data : []));
+            ? res.data.data
+            : (res.data && Array.isArray(res.data) ? res.data : []));
 
         const total = res.data?.totalItems || res.data?.total || roomData.length;
 
@@ -131,9 +134,14 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
     setTab('statistics');
   };
 
-  const handleJoinStudio = (roomId, room) => {
+  const handleJoinStudio = (roomId) => {
     setSelectedRoomId(roomId);
-    navigate(`/admin-host-studio/${roomId}`, { state: { roomInfo: room } });
+    navigate(`/admin-host-studio/${roomId}`);
+  };
+
+  const handleDeleteSession = (room) => {
+    setSessionToDelete(room);
+    setIsDeleteModalOpen(true);
   };
 
   const columns = [
@@ -228,11 +236,11 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
       width: 170,
       align: 'center',
       render: (_, room) => {
-        const streamId = room.streamSettings?.streamId || room._id || room.id;
+        const roomId = room._id || room.id;
         return (
           <div className="flex flex-col gap-2 w-full">
             <Button
-              onClick={() => handleJoinStudio(streamId, room)}
+              onClick={() => handleJoinStudio(roomId)}
               type="primary"
               className="
                 !bg-[#D4AF37]
@@ -247,7 +255,7 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
             </Button>
 
             <Button
-              onClick={() => handleChangeTab(streamId)}
+              onClick={() => handleChangeTab(roomId)}
               className="
                 !bg-[#182235]
                 !border-[#2A3547]
@@ -270,6 +278,23 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
               "
             >
               Chỉnh sửa
+            </Button>
+
+            <Button
+              onClick={() => handleDeleteSession(room)}
+              danger
+              type="primary"
+              className="
+                !bg-red-500/10
+                !border-red-500/30
+                !text-red-500
+                hover:!bg-red-500
+                hover:!text-white
+                hover:!border-red-500
+                w-full
+              "
+            >
+              Xóa
             </Button>
           </div>
         );
@@ -391,6 +416,87 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
           }}
         />
       </div>
+
+      {/* Declarative Dark Modal for Deletion Confirmation */}
+      <Modal
+        title={
+          <span className="text-white font-bold text-lg">
+            Xác nhận xóa phiên livestream?
+          </span>
+        }
+        open={isDeleteModalOpen}
+        onCancel={() => !isDeleting && setIsDeleteModalOpen(false)}
+        footer={null}
+        centered
+        className="dark-modal"
+        width={480}
+      >
+        <div className="mt-4">
+          <p className="text-[#94A3B8] text-sm leading-relaxed">
+            Bạn có chắc chắn muốn xóa phiên livestream <strong className="text-white">"{sessionToDelete?.info?.name || 'Phiên live chưa đặt tên'}"</strong> không?
+            Hành động này sẽ xóa vĩnh viễn phiên live này và không thể hoàn tác.
+          </p>
+
+          <div className="flex justify-end gap-3 mt-8">
+            <Button
+              disabled={isDeleting}
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="
+              !bg-[#151D2C]
+              !border-[#1E2633]
+              !text-[#CBD5E1]
+              hover:!bg-[#1E2633]
+              hover:!border-[#D4AF37]
+              hover:!text-white
+              !rounded-xl
+              !h-10
+              !px-5
+              !font-semibold
+            "
+            >
+              Đóng
+            </Button>
+
+            <Button
+              loading={isDeleting}
+              onClick={async () => {
+                const roomId = sessionToDelete?._id || sessionToDelete?.id;
+                if (!roomId) return;
+                try {
+                  setIsDeleting(true);
+                  await api.actDeleteLivestream(roomId);
+                  message.success('Đã xóa phiên livestream thành công!');
+                  setIsDeleteModalOpen(false);
+                  setSessionToDelete(null);
+                  fetchData();
+                } catch (error) {
+                  console.error('Failed to delete session:', error);
+                  message.error('Không thể xóa phiên livestream. Vui lòng thử lại.');
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              type="primary"
+              danger
+              className="
+          !bg-[#EF4444]
+          !border-[#EF4444]
+          !text-white
+          hover:!bg-[#DC2626]
+          hover:!border-[#DC2626]
+          !rounded-xl
+          !h-10
+          !px-5
+          !font-semibold
+          shadow-lg shadow-red-500/20
+        "
+            >
+              Xóa vĩnh viễn
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
     </section>
   );
 }

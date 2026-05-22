@@ -123,6 +123,8 @@ export default function NewSession({ setTab }) {
     const isValidNotifyContent = validateField('notifyContent', formData.notifyContent);
     const isValidRoomId = validateField('streamIdInput', formData.streamIdInput);
     const isValidPassword = formData.hasPassword ? validateField('roomPassword', formData.roomPassword) : true;
+    let _id = undefined;
+
     if (!isValidTitle) {
       message.error('Vui lòng điền tên phiên livestream');
       return;
@@ -167,7 +169,6 @@ export default function NewSession({ setTab }) {
       const baseLink = import.meta.env.NEXT_PUBLIC_LIVESTREAM_URL;
       const hostUrl = `${baseLink}/host/${formData.streamIdInput}`;
       const joinUrl = `${baseLink}/live/${formData.streamIdInput}`;
-
       const startAtStr = formData.startTime ? dayjs(formData.startTime).format('YYYY-MM-DD HH:mm') : null;
 
       const payload = {
@@ -229,6 +230,7 @@ export default function NewSession({ setTab }) {
         setLoading(false);
         return;
       }
+      _id = res._id;
       setLoading(false);
       message.success('Đã khởi tạo phiên livestream thành công!');
     } catch (err) {
@@ -271,19 +273,7 @@ export default function NewSession({ setTab }) {
     }
 
     setLoading(false);
-    navigate('/admin-host-studio/' + formData.streamIdInput, {
-      state: {
-        roomInfo: {
-          host: formData.hostName,
-          title: formData.title,
-          dateStr: dateStr,
-          timeStr: timeStr,
-          bannerUrl: formData.bannerFile?.url || '',
-          audioUrl: formData.audioFile?.url || '',
-          videoUrl: formData.videoUrl || '',
-        }
-      }
-    });
+    navigate('/admin-host-studio/' + _id);
   };
 
   return (

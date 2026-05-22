@@ -8,7 +8,8 @@ export function useAntMedia({
   appName = 'LiveApp',
   streamId,
   token = '',
-  mode
+  mode,
+  enabled = true,
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);

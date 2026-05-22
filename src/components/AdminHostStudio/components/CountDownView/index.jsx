@@ -1,112 +1,55 @@
-import React, { useState, useEffect, useRef } from 'react';
-import dayjs from 'dayjs';
-import { Badge, Modal, message } from 'antd';
-import { useIsMobile } from '../../../../hook/useMediaQuery';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { AdminPanelService } from "../../../../api";
+import { Badge, message } from "antd";
+import { useIsMobile } from "../../../../hook/useMediaQuery";
+import IconClock from "../../../../icons/IconClock";
+import IconFileText from "../../../../icons/IconFileText";
+import IconCopy from "../../../../icons/IconCopy";
+import IconQr from "../../../../icons/IconQr";
 
-const IconClock = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-  </svg>
-);
+const api = new AdminPanelService();
 
-const IconFileText = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
-  </svg>
-);
-
-export default function CountdownView({ roomInfo, roomId }) {
-  const [timeLeft, setTimeLeft] = useState({ days: '00', hours: '00', minutes: '00', seconds: '00' });
+export default function CountDownView() {
+  const { _id: roomId } = useParams();
   const [isReady, setIsReady] = useState(false);
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const isMobile = useIsMobile();
-
-  const bannerUrl = roomInfo?.inStreamSettings?.countdown?.background || roomInfo?.state?.bannerUrl || '';
-  const audioUrl = roomInfo?.inStreamSettings?.countdown?.music || roomInfo?.state?.audioUrl || '';
-  const videoUrl = roomInfo?.inStreamSettings?.countdown?.video || roomInfo?.state?.videoUrl || '';
-
+  const [detailData, setDetailData] = useState(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef(null);
-
-  const togglePlayAudio = () => {
-    if (!audioRef.current) return;
-    if (isPlayingAudio) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(err => console.warn('Audio play block:', err));
-    }
-    setIsPlayingAudio(!isPlayingAudio);
-  };
+  const isMobile = useIsMobile();
+  const [audioUrl, setAudioUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [backgroundUrl, setBackgroundUrl] = useState("");
+  const [timeStr, setTimeStr] = useState("");
+  const [dateStr, setDateStr] = useState("");
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.src = audioUrl;
+    if (roomId) {
+      getDetailLivestream();
     }
-    setIsPlayingAudio(false);
-  }, [audioUrl]);
+  }, [roomId]);
 
-  const getYouTubeEmbedUrl = (url) => {
-    if (!url) return '';
-    let videoId = '';
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    if (match && match[2].length === 11) {
-      videoId = match[2];
-    }
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-  };
-
-  const getAppUrl = (type) => {
-    const baseLink = import.meta.env.NEXT_PUBLIC_LIVESTREAM_URL || window.location.origin;
-    if (type === 'host') {
-      return `${baseLink}/host/${roomId || roomInfo?.id}`;
-    }
-    return `${baseLink}/live/${roomId || roomInfo?.id}`;
-  };
-
-  const handleCopyLink = (text, type) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        message.success(`Đã sao chép đường dẫn ${type} thành công!`);
-      })
-      .catch((err) => {
-        console.error('Failed to copy: ', err);
-        message.error('Không thể tự động sao chép. Vui lòng sao chép thủ công.');
-      });
-  };
-
-  const timeStr = roomInfo?.state?.timeStr || '00:00';
-  const dateStr = roomInfo?.state?.dateStr || '';
-
-  // Mock forms data
-  const forms = [
-    { id: 1, user: 'Nguyễn Văn A', question: 'Làm sao để tối ưu hóa chiến dịch quảng cáo?' },
-    { id: 2, user: 'Trần Thị B', question: 'Ngân sách tối thiểu cho người mới bắt đầu là bao nhiêu?' },
-    { id: 3, user: 'Lê Văn C', question: 'Lớp học có hỗ trợ tài liệu sau buổi live không ạ?' },
-  ];
-
-  useEffect(() => {
-    if (!timeStr || !timeStr.includes(':')) return;
+  const parseTargetDate = (timeStr, dateStr) => {
+    if (!timeStr || !timeStr.includes(':')) return null;
 
     const parts = timeStr.split(':');
     const targetH = parseInt(parts[0], 10);
     const targetM = parseInt(parts[1], 10);
 
-    if (isNaN(targetH) || isNaN(targetM)) return;
+    if (isNaN(targetH) || isNaN(targetM)) return null;
 
     const now = new Date();
     const targetDate = new Date();
     targetDate.setHours(targetH, targetM, 0, 0);
 
-    const dateLower = dateStr.toLowerCase();
+    const dateLower = (dateStr || '').toLowerCase();
     if (dateLower.includes('mai')) {
       targetDate.setDate(now.getDate() + 1);
     } else if (dateLower.includes('chủ nhật')) {
       const currentDay = now.getDay();
       const daysUntilSunday = (7 - currentDay) % 7 || 7;
       targetDate.setDate(now.getDate() + daysUntilSunday);
-    } else if (dateStr.includes('/') || dateStr.includes('-')) {
+    } else if (dateStr && (dateStr.includes('/') || dateStr.includes('-'))) {
       try {
         const dParts = dateStr.includes('/') ? dateStr.split('/') : dateStr.split('-');
         if (dParts.length === 3) {
@@ -124,47 +67,166 @@ export default function CountdownView({ roomInfo, roomId }) {
         targetDate.setDate(now.getDate() + 1);
       }
     }
+    return targetDate;
+  };
 
-    const updateCountdown = () => {
-      const diff = targetDate.getTime() - new Date().getTime();
+  const TimerDisplay = React.memo(({ timeStr, dateStr, isMobile, onReadyChange }) => {
+    const [timeLeft, setTimeLeft] = useState({ days: '00', hours: '00', minutes: '00', seconds: '00' });
+    useEffect(() => {
+      const targetDate = parseTargetDate(timeStr, dateStr);
+      if (!targetDate) return;
 
-      if (diff <= 0) {
-        setTimeLeft({ days: '00', hours: '00', minutes: '00', seconds: '00' });
-        setIsReady(true);
-        return;
+      const updateCountdown = () => {
+        const diff = targetDate.getTime() - new Date().getTime();
+
+        if (diff <= 0) {
+          setTimeLeft({ days: '00', hours: '00', minutes: '00', seconds: '00' });
+          onReadyChange(true);
+          return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        setTimeLeft({
+          days: d.toString().padStart(2, '0'),
+          hours: h.toString().padStart(2, '0'),
+          minutes: m.toString().padStart(2, '0'),
+          seconds: s.toString().padStart(2, '0')
+        });
+        onReadyChange(diff <= 5 * 60 * 1000);
+      };
+
+      updateCountdown();
+      const interval = setInterval(updateCountdown, 1000);
+      return () => clearInterval(interval);
+    }, [timeStr, dateStr, onReadyChange]);
+
+    if (isMobile) {
+      return (
+        <div className="flex flex-col items-center mt-1.5 w-full">
+          <div className="text-[36px] font-black text-white leading-none tracking-tighter tabular-nums drop-shadow-lg">
+            {timeLeft.days !== '00' && <span className="text-[#D4AF37]">{timeLeft.days}:</span>}
+            {timeLeft.hours}:{timeLeft.minutes}:{timeLeft.seconds}
+          </div>
+          <div className="flex gap-4 text-[#7E8CA8] font-bold text-[8px] uppercase tracking-[2px] mt-1 ml-1">
+            {timeLeft.days !== '00' && <span className="text-[#D4AF37]">Ngày</span>}
+            <span>Giờ</span>
+            <span>Phút</span>
+            <span>Giây</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center mb-12">
+        <div className="text-[140px] font-black text-white leading-none tracking-tighter mb-6 tabular-nums drop-shadow-2xl">
+          {timeLeft.days !== '00' && <span className="text-[#D4AF37]">{timeLeft.days}:</span>}
+          {timeLeft.hours}:{timeLeft.minutes}:{timeLeft.seconds}
+        </div>
+        <div className="flex gap-16 text-[#7E8CA8] font-bold text-[10px] uppercase tracking-[6px] ml-4">
+          {timeLeft.days !== '00' && <span className="text-[#D4AF37]">Ngày</span>}
+          <span>Giờ</span>
+          <span>Phút</span>
+          <span>Giây</span>
+        </div>
+      </div>
+    );
+  });
+
+  const getDetailLivestream = async () => {
+    try {
+      const res = await api.actGetDetailLivestream(roomId);
+      setDetailData(res.data.mainData);
+      setAudioUrl(res.data.mainData?.inStreamSettings?.music || "");
+      setVideoUrl(res.data.mainData?.inStreamSettings?.video || "");
+      setBackgroundUrl(res.data.mainData?.inStreamSettings?.background || "");
+      if (res.data.mainData?.info?.startAt) {
+        const date = new Date(res.data.mainData.info.startAt);
+        setTimeStr(date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }));
+        setDateStr(date.toLocaleDateString("vi-VN"));
       }
+    } catch (error) {
+      console.error("Failed to get detail livestream:", error);
+    }
+  };
 
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
+  const togglePlayAudio = useCallback(() => {
+    if (!audioRef.current) return;
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(err => console.warn('Audio play block:', err));
+    }
+    setIsPlayingAudio(!isPlayingAudio);
+  }, [isPlayingAudio]);
 
-      setTimeLeft({
-        days: d.toString().padStart(2, '0'),
-        hours: h.toString().padStart(2, '0'),
-        minutes: m.toString().padStart(2, '0'),
-        seconds: s.toString().padStart(2, '0')
+  useEffect(() => {
+    if (audioRef.current && audioUrl !== "") {
+      audioRef.current.src = audioUrl;
+    }
+    setIsPlayingAudio(false);
+  }, [audioUrl]);
+
+  const getYouTubeEmbedUrl = useCallback((url) => {
+    if (!url) return '';
+    let videoId = '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      videoId = match[2];
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoUrl}` : url;
+  }, []);
+
+  const getAppUrl = useCallback((type) => {
+    const baseLink = import.meta.env.NEXT_PUBLIC_LIVESTREAM_URL || window.location.origin;
+    if (type === 'host') {
+      return `${baseLink}/host/${roomId}`;
+    }
+    return `${baseLink}/live/${roomId}`;
+  }, [roomId]);
+
+  const handleCopyLink = useCallback((text, type) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        message.success(`Đã sao chép đường dẫn ${type} thành công!`);
+      })
+      .catch((err) => {
+        console.error('Failed to copy: ', err);
+        message.error('Không thể tự động sao chép. Vui lòng sao chép thủ công.');
       });
-      setIsReady(diff <= 5 * 60 * 1000);
-    };
+  }, []);
 
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [timeStr, dateStr]);
+  const hostAppUrl = useMemo(() => getAppUrl('host'), [getAppUrl]);
+  const viewerAppUrl = useMemo(() => getAppUrl('live'), [getAppUrl]);
 
-  const bgStyle = bannerUrl
-    ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : {};
+  const hostQrCodeUrl = useMemo(() => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(hostAppUrl)}`;
+  }, [hostAppUrl]);
+
+  const viewerQrCodeUrl = useMemo(() => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(viewerAppUrl)}`;
+  }, [viewerAppUrl]);
+
+  const youtubeEmbedUrl = useMemo(() => getYouTubeEmbedUrl(videoUrl), [videoUrl, getYouTubeEmbedUrl]);
+
+  const handleReadyChange = useCallback((ready) => {
+    setIsReady((prev) => (prev !== ready ? ready : prev));
+  }, []);
+
+  const bgStyle = useMemo(() => backgroundUrl
+    ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : {}, [backgroundUrl]);
 
   return (
-    <div
-      style={bgStyle}
-      className={`absolute inset-0 bg-[#090D14] z-[100] flex ${isMobile ? 'flex-col px-6 gap-8 overflow-y-auto' : 'p-12 gap-12 overflow-hidden'}`}
-    >
+    <div style={bgStyle}
+      className={`absolute inset-0 bg-[#090D14] z-[100] flex ${isMobile ? 'flex-col px-6 gap-8 overflow-y-auto' : 'p-12 gap-12 overflow-hidden'}`}>
       <div className="absolute inset-0 bg-[#090D14]/90 backdrop-blur-md pointer-events-none"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_50%,_#D4AF3705_0%,_transparent_50%)] pointer-events-none"></div>
-
       {/* Sticky Header: Contains Quick Actions & Countdown Timer on Mobile */}
       <div className={`${isMobile ? 'sticky top-0 z-50 bg-[#090D14]/90 backdrop-blur-md pb-4 pt-6 -mx-6 px-6 border-b border-[#1E2633]/20 shadow-md flex flex-col items-center gap-3' : 'absolute top-8 right-12 z-[110] flex items-center gap-3'}`}>
 
@@ -172,7 +234,7 @@ export default function CountdownView({ roomInfo, roomId }) {
         <div className="flex flex-wrap justify-center gap-2 items-center">
           {/* Copy Host Link */}
           <button
-            onClick={() => handleCopyLink(getAppUrl('host'), 'Host')}
+            onClick={() => handleCopyLink(hostAppUrl, 'Host')}
             className={`
               flex items-center gap-2 
               bg-[#151D2C]/90 hover:bg-[#D4AF37]/20
@@ -189,7 +251,7 @@ export default function CountdownView({ roomInfo, roomId }) {
 
           {/* Copy Viewer Link */}
           <button
-            onClick={() => handleCopyLink(getAppUrl('live'), 'Viewer')}
+            onClick={() => handleCopyLink(viewerAppUrl, 'Viewer')}
             className={`
               flex items-center gap-2 
               bg-[#151D2C]/90 hover:bg-[#3B82F6]/20
@@ -264,47 +326,28 @@ export default function CountdownView({ roomInfo, roomId }) {
 
         {/* Mobile ONLY: Compact Sticky Countdown Timer */}
         {isMobile && (
-          <div className="flex flex-col items-center mt-1.5 w-full">
-            <div className="text-[36px] font-black text-white leading-none tracking-tighter tabular-nums drop-shadow-lg">
-              {timeLeft.days !== '00' && <span className="text-[#D4AF37]">{timeLeft.days}:</span>}
-              {timeLeft.hours}:{timeLeft.minutes}:{timeLeft.seconds}
-            </div>
-            <div className="flex gap-4 text-[#7E8CA8] font-bold text-[8px] uppercase tracking-[2px] mt-1 ml-1">
-              {timeLeft.days !== '00' && <span className="text-[#D4AF37]">Ngày</span>}
-              <span>Giờ</span>
-              <span>Phút</span>
-              <span>Giây</span>
-            </div>
-            {/* Mobile Sticky Live Start Time */}
-            {/* <p className="text-[#A6B5D6] text-[10px] tracking-wider mt-2.5 uppercase font-bold text-center">
-              Phiên live sẽ bắt đầu vào <span className="text-[#D4AF37]">{dayjs(roomInfo?.state?.dateStr).format('HH:mm - DD/MM/YYYY')}</span>
-            </p> */}
-          </div>
+          <TimerDisplay
+            timeStr={timeStr}
+            dateStr={dateStr}
+            isMobile={true}
+            onReadyChange={handleReadyChange}
+          />
         )}
       </div>
 
       {/* Left Panel: Simplified Countdown (Titles & Starts-in info) */}
       <div className={`flex flex-col items-center justify-center text-center z-10 ${isMobile ? 'w-full pb-6 border-b border-[#1E2633]/30' : 'flex-[2] border-r border-[#1E2633]/50 pr-12'}`}>
         <h2 className={`text-[12px] font-bold text-[#D4AF37] uppercase tracking-[8px] ${isMobile ? '' : 'mb-6'} opacity-80`}>Trạng thái: Đang chuẩn bị lên sóng</h2>
-        {/* {!isMobile && (
-          <p className="text-[#A6B5D6] text-sm tracking-widest mt-1 uppercase">Phiên live sẽ bắt đầu vào <span className="text-[#D4AF37] font-semibold">{dayjs(roomInfo?.state?.dateStr).format('HH:mm - DD/MM/YYYY')}</span></p>
-        )} */}
-        <h1 className={`text-4xl font-extrabold text-white tracking-tight ${isMobile ? 'mb-8' : 'mb-16'}`}>{roomInfo?.state?.hostName}</h1>
+        <h1 className={`text-4xl font-extrabold text-white tracking-tight ${isMobile ? 'mb-8' : 'mb-16'}`}>{detailData?.info?.name}</h1>
 
         {/* Desktop ONLY Inline Countdown Timer */}
         {!isMobile && (
-          <div className="flex flex-col items-center mb-12">
-            <div className="text-[140px] font-black text-white leading-none tracking-tighter mb-6 tabular-nums drop-shadow-2xl">
-              {timeLeft.days !== '00' && <span className="text-[#D4AF37]">{timeLeft.days}:</span>}
-              {timeLeft.hours}:{timeLeft.minutes}:{timeLeft.seconds}
-            </div>
-            <div className="flex gap-16 text-[#7E8CA8] font-bold text-[10px] uppercase tracking-[6px] ml-4">
-              {timeLeft.days !== '00' && <span className="text-[#D4AF37]">Ngày</span>}
-              <span>Giờ</span>
-              <span>Phút</span>
-              <span>Giây</span>
-            </div>
-          </div>
+          <TimerDisplay
+            timeStr={timeStr}
+            dateStr={dateStr}
+            isMobile={false}
+            onReadyChange={handleReadyChange}
+          />
         )}
 
         <div className={`${isMobile ? 'mt-4 flex-col px-4 py-3 rounded-2xl gap-3 w-full max-w-[280px] mx-auto' : 'mt-8 px-8 py-4 rounded-full gap-6'} bg-[#151D2C] border border-[#1E2633] flex items-center shadow-2xl`}>
@@ -312,7 +355,7 @@ export default function CountdownView({ roomInfo, roomId }) {
             <IconClock className="w-5 h-5 text-[#D4AF37]" />
             <div className="text-left">
               <div className="text-[9px] text-[#7E8CA8] uppercase font-bold tracking-widest leading-none mb-1">Thời gian bắt đầu</div>
-              <div className="text-sm font-bold text-white leading-none">{roomInfo?.state?.dateStr} | {roomInfo?.state?.timeStr}</div>
+              <div className="text-sm font-bold text-white leading-none">{dateStr} | {timeStr}</div>
             </div>
           </div>
           <div className={`${isMobile ? 'h-[1px] w-full bg-[#1E2633]' : 'h-8 w-[1px] bg-[#1E2633]'}`}></div>
@@ -337,7 +380,7 @@ export default function CountdownView({ roomInfo, roomId }) {
           <p className="text-xs text-[#7E8CA8] mb-8 leading-relaxed">Câu hỏi từ người xem gửi về trước phiên livestream.</p>
 
           <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
-            {forms.map(form => (
+            {/* {FORMS_DATA.map(form => (
               <div key={form.id} className="bg-[#151D2C] border border-[#1E2633] rounded-2xl p-5 hover:border-[#D4AF37]/30 transition-all group">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider">{form.user}</div>
@@ -345,98 +388,11 @@ export default function CountdownView({ roomInfo, roomId }) {
                 </div>
                 <div className="text-[13px] text-gray-200 leading-relaxed italic opacity-90">"{form.question}"</div>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>
 
-      {/* QR Codes Modal */}
-      <Modal
-        title={<span className="text-white font-bold text-base">Mã QR Phòng Livestream</span>}
-        open={showQrModal}
-        onCancel={() => setShowQrModal(false)}
-        footer={null}
-        centered
-        className="dark-modal text-center"
-        width={isMobile ? 320 : 560}
-      >
-        <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-2 gap-6'} p-4`}>
-          {/* Host QR Code */}
-          <div className="flex flex-col items-center p-4 bg-[#151D2C] border border-[#1E2633] rounded-2xl hover:border-[#D4AF37]/40 transition-all duration-300">
-            <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider mb-3">Host QR Code</span>
-            <div className="bg-white p-2 rounded-xl shadow-md">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getAppUrl('host'))}`}
-                alt="Host QR Code"
-                className="w-36 h-36 object-contain"
-              />
-            </div>
-            <button
-              onClick={() => handleCopyLink(getAppUrl('host'), 'Host')}
-              className="mt-4 px-3 py-1.5 bg-[#1E2633] hover:bg-[#D4AF37]/20 text-[10px] text-[#D4AF37] border border-white/5 rounded-lg font-bold transition-all duration-300 cursor-pointer"
-            >
-              Copy Host Link
-            </button>
-          </div>
-
-          {/* Viewer QR Code */}
-          <div className="flex flex-col items-center p-4 bg-[#151D2C] border border-[#1E2633] rounded-2xl hover:border-[#3B82F6]/40 transition-all duration-300">
-            <span className="text-xs font-bold text-[#3B82F6] uppercase tracking-wider mb-3">Viewer QR Code</span>
-            <div className="bg-white p-2 rounded-xl shadow-md">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getAppUrl('live'))}`}
-                alt="Viewer QR Code"
-                className="w-36 h-36 object-contain"
-              />
-            </div>
-            <button
-              onClick={() => handleCopyLink(getAppUrl('live'), 'Viewer')}
-              className="mt-4 px-3 py-1.5 bg-[#1E2633] hover:bg-[#3B82F6]/20 text-[10px] text-[#3B82F6] border border-white/5 rounded-lg font-bold transition-all duration-300 cursor-pointer"
-            >
-              Copy Viewer Link
-            </button>
-          </div>
-        </div>
-        <p className="text-[10px] text-[#7E8CA8] mt-2 font-medium leading-relaxed max-w-md mx-auto">
-          Quét bằng camera điện thoại hoặc thiết bị di động để truy cập nhanh chóng vào đường dẫn tương ứng.
-        </p>
-      </Modal>
-
-      {/* Intro Video Modal */}
-      <Modal
-        title={<span className="text-white font-bold text-base">Xem trước Intro Video</span>}
-        open={showVideoModal}
-        onCancel={() => setShowVideoModal(false)}
-        footer={null}
-        centered
-        destroyOnClose
-        className="dark-modal text-center"
-        width={720}
-      >
-        <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl">
-          <iframe
-            className="w-full h-full"
-            src={getYouTubeEmbedUrl(videoUrl)}
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        </div>
-      </Modal>
     </div>
   );
 }
-
-const IconCopy = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-  </svg>
-);
-
-const IconQr = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-    <line x1="7" y1="7" x2="7" y2="7" /><line x1="17" y1="7" x2="17" y2="7" /><line x1="17" y1="17" x2="17" y2="17" /><line x1="7" y1="17" x2="7" y2="17" />
-  </svg>
-);

@@ -24,6 +24,18 @@ class AdminPanelService extends NewService {
   actGetDetailLivestream = (id) => {
     return this.get(this.apiUlr() + '/api/admin/streams/' + id);
   }
+
+  actStopLivestream = (id) => {
+    return this.put(this.apiUlr() + '/api/admin/streams/' + id + '/end');
+  }
+
+  actDeleteLivestream = (id) => {
+    return this.delete(this.apiUlr() + '/api/admin/streams/' + id);
+  }
+
+  actGetLivestreamCountdown = (id) => {
+    return this.get(this.apiUlr() + '/api/streams/' + id + '/countdown');
+  }
 }
 
 export default AdminPanelService;
