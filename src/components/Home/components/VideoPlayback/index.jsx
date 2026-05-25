@@ -88,7 +88,7 @@ export default function VideoPlayback() {
         const state = node.state || {};
         // Only include ended sessions for playback usually, or those with playback URLs
         const isEnded = state.isLive === false;
-        
+
         return {
           "_id": id,
           "info": {
@@ -98,7 +98,7 @@ export default function VideoPlayback() {
           "streamSettings": {
             "streamId": id,
             "hls": {
-              "playbackUrl": state.playbackUrl || "" 
+              "playbackUrl": state.playbackUrl || ""
             }
           },
           "createdAt": state.dateStr && state.timeStr ? new Date(`${state.dateStr} ${state.timeStr}`).toISOString() : new Date().toISOString(),
@@ -206,7 +206,7 @@ export default function VideoPlayback() {
       key: 'playbackStatus',
       width: 180,
       render: (status, record) => {
-        const config = badgeConfig[status] || { text: {status}, className: 'bg-white/10 text-[#A6B5D6] border border-white/20' };
+        const config = badgeConfig[status] || { text: { status }, className: 'bg-white/10 text-[#A6B5D6] border border-white/20' };
 
         return (
           <div className="flex items-center gap-2">

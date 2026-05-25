@@ -4,7 +4,7 @@ import { Dropdown } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import images from '../../config/images';
 import { useAuth } from '../../hook/useAuth';
-import Logo from './component/Logo';
+import Logo from './components/Logo';
 import { useIsMobile } from '../../hook/useMediaQuery';
 import { useState } from 'react';
 import SideBar from '../SideBar';

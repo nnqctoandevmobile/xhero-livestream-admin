@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../api';
 import { useAuth } from '../../hook/useAuth';
 import { useUI } from '../../hook/useUI';
+import images from '../../config/images';
 
 const authService = new AuthService();
 
@@ -39,12 +40,17 @@ export default function SignIn() {
       return setError('Vui lòng nhập mật khẩu');
     }
 
+    let formattedUsername = username.trim();
+    if (formattedUsername.startsWith('0')) {
+      formattedUsername = '84' + formattedUsername.slice(1);
+    }
+
     try {
-      const res = await authService.actSignin({ username, password });
+      const res = await authService.actSignin({ username: formattedUsername, password });
 
       const { status, data } = res;
       if (status) {
-        const loggedUser = data.user || { username: username.trim() };
+        const loggedUser = data.user || { username: formattedUsername };
         localStorage.setItem('auth/token', data.token || '');
         localStorage.setItem('USER_INFO', JSON.stringify(loggedUser));
         setUser(loggedUser); // UPDATE THE CONTEXT!
@@ -66,7 +72,8 @@ export default function SignIn() {
 
         <div className="text-center mb-8">
           <div className="w-[72px] h-[72px] mx-auto mb-4 rounded-full bg-[rgba(212,175,55,0.12)] grid place-items-center">
-            <span className="text-[#d4af37] text-[30px] font-bold">A</span>
+            {/* <span className="text-[#d4af37] text-[30px] font-bold">A</span> */}
+            <img src={images.logoXHeroApp} alt="XHero" className="w-16 h-16" />
           </div>
 
           <h1 className="text-white text-[30px] font-bold m-0">

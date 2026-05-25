@@ -10,7 +10,7 @@ const adminPanelService = new AdminPanelService();
 
 export default function ConsultingForms({ defaultSessionFilter }) {
   const [forms, setForms] = useState([]);
-  
+
   // Filter States
   const [sessionFilter, setSessionFilter] = useState(defaultSessionFilter || 'all');
 
@@ -191,7 +191,7 @@ export default function ConsultingForms({ defaultSessionFilter }) {
 
     // Prepare CSV header
     const headers = ['STT', 'Họ và tên', 'Số điện thoại', 'Ngày sinh', 'Địa chỉ', 'Câu hỏi', 'Phiên live', 'Thời gian gửi'];
-    
+
     // Process rows
     const rows = filteredData.map((row, index) => {
       return [
@@ -207,7 +207,7 @@ export default function ConsultingForms({ defaultSessionFilter }) {
     });
 
     const csvContent = [headers.join(','), ...rows].join('\n');
-    
+
     // Add BOM for UTF-8 encoding support in Excel
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -265,7 +265,7 @@ export default function ConsultingForms({ defaultSessionFilter }) {
               }
             }}
           >
-            <RangePicker 
+            <RangePicker
               onChange={setDateRange}
               format="DD/MM/YYYY"
               placeholder={['Từ ngày', 'Đến ngày']}

@@ -22,3 +22,46 @@ export const PLAYBACK_STATUS = {
   Ready: 'Ready',
   Error: 'Error',
 };
+
+export const DEFAULT_TAGS = [
+  {
+    value: 'fengshui',
+    label: 'Phong Thủy'
+  },
+  {
+    value: 'tailoc',
+    label: 'Tài Lộc'
+  },
+  {
+    value: 'daogiao',
+    label: 'Đạo Giáo'
+  },
+  {
+    value: 'battu',
+    label: 'Bát Tự',
+  },
+  {
+    value: 'bds',
+    label: 'Bất Động Sản',
+  },
+  {
+    value: 'thinhvuong ',
+    label: 'Thịnh Vượng'
+  },
+  {
+    value: 'anlac',
+    label: 'An Lạc'
+  },
+  {
+    value: 'suckhoe',
+    label: 'Sức Khỏe'
+  },
+  {
+    value: 'phongthuyxe',
+    label: 'Phong Thủy Xe'
+  },
+  {
+    value: 'hoctap',
+    label: 'Học Tập'
+  },
+]

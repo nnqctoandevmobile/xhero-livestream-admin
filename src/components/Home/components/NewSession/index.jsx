@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { DatePicker, ConfigProvider, theme, Button, message, Switch } from 'antd';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { DatePicker, ConfigProvider, theme, Button, message, Switch, Select, Image } from 'antd';
 import dayjs from 'dayjs';
 import vi_VN from 'antd/es/date-picker/locale/vi_VN';
 import images from '../../../../config/images';
@@ -10,6 +10,7 @@ import { rtdb } from '../../../../core/firebase';
 import { ref, set } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../hook/useAuth';
+import { DEFAULT_TAGS } from '../../../../core/constants';
 
 const api = new AdminPanelService()
 
@@ -33,13 +34,14 @@ const getAntMediaApiUrl = () => {
   return `${protocol}//${server}:${port}/LiveApp`;
 };
 
-export default function NewSession({ setTab }) {
+export default function NewSession() {
   const [formData, setFormData] = useState({
     title: '',
-    hostName: '',
+    host: null,
     startTime: '',
     bannerFile: null,
     bannerFit: 'cover',
+    thumbnailFile: null,
     videoUrl: '',
     audioFile: null,
     description: '',
@@ -54,10 +56,13 @@ export default function NewSession({ setTab }) {
     hasPassword: false,
     roomPassword: '',
     privacy: 'public',
+    tags: [],
   });
 
   const [bannerFile, setBannerFile] = useState(null);
   const [uploadingBannerFile, setUploadingBannerFile] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [uploadingThumbnailFile, setUploadingThumbnailFile] = useState(false);
   const [audioFile, setAudioFile] = useState(null);
   const [uploadingAudioFile, setUploadingAudioFile] = useState(false);
   const [notifyImageFile, setNotifyImageFile] = useState(null);
@@ -65,6 +70,13 @@ export default function NewSession({ setTab }) {
 
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+  const [hostList, setHostList] = useState([]);
+  const [host, setHost] = useState(null);
+  const [userList, setUserList] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [categories, setCategories] = useState(DEFAULT_TAGS);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const { user } = useAuth();
   const { loading, setLoading } = useUI();
   const audioRef = useRef(null);
@@ -72,20 +84,129 @@ export default function NewSession({ setTab }) {
 
   const adminPanelService = new AdminPanelService();
 
+  const handleAddCategory = () => {
+    if (newCategoryName.trim()) {
+      setCategories((prev) => [
+        ...prev,
+        { label: newCategoryName, value: newCategoryName.trim(), active: true },
+      ]);
+      setNewCategoryName('');
+      setIsAdding(false);
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (formData.bannerFile?.url) URL.revokeObjectURL(formData.bannerFile.url);
+      if (formData.thumbnailFile?.url) URL.revokeObjectURL(formData.thumbnailFile.url);
       if (formData.audioFile?.url) URL.revokeObjectURL(formData.audioFile.url);
       if (formData.notifyImageFile?.url) URL.revokeObjectURL(formData.notifyImageFile.url);
     };
-  }, [formData.bannerFile?.url, formData.audioFile?.url, formData.notifyImageFile?.url]);
+  }, [formData.bannerFile?.url, formData.thumbnailFile?.url, formData.audioFile?.url, formData.notifyImageFile?.url]);
+
+  const fetchHostList = async () => {
+    try {
+      const res = await adminPanelService.actGetHostList({
+        status: "active",
+        typeConsulting: "dương trạch",
+        skip: 0,
+        limit: 20,
+      });
+      const mappedData = (res?.data?.leaderExpert || []).map(item => ({
+        ...item,
+        label: item.fullName,
+        value: item._id,
+      }));
+      setHostList(mappedData);
+    } catch (error) {
+      console.error('Error fetching host list:', error);
+      setLoading(false);
+    }
+  };
+
+  // const fetchUserList = async (name = '') => {
+  //   try {
+  //     const res = await adminPanelService.actGetUserList({ ...(name && { key: name }), isActive: true });
+  //     const customers = (res?.data?.data || []).map((customer) => ({
+  //       value: customer._id,
+  //       label: customer.name || customer.fullName || customer.phone || 'No Name',
+  //       avatar: customer.avatar || customer.image || images.lmsLG,
+  //       data: customer,
+  //     }));
+  //     setUserList(customers);
+  //   } catch (error) {
+  //     console.log('fetchDataCustomer error', error);
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchUserList = async (value = '') => {
+    const params = {
+      skip: 0,
+      limit: 20,
+      status: 'active',
+      username: value,
+    };
+    const res = await adminPanelService.actGetUserList(params);
+    const formatForSelect = res.data.data.map((i) => ({
+      value: i?._id,
+      label: i.fullName || i.username || '---',
+      avatar: i?.avatar,
+      fullName: i?.fullName,
+      username: i?.username,
+      email: i?.email,
+      address: i?.address?.at(0) || '',
+      homeAddress: i?.address?.at(1) || '',
+    }));
+    setUserList(formatForSelect);
+  };
+
+  useEffect(() => {
+    fetchHostList();
+    fetchUserList();
+  }, []);
+
+  const [searchUserTimeout, setSearchUserTimeout] = useState(null);
+
+  const handleSearchUser = (value) => {
+    if (searchUserTimeout) clearTimeout(searchUserTimeout);
+
+    let formattedUser = (value || '').trim();
+    if (formattedUser?.length > 9 && formattedUser.startsWith('0')) {
+      formattedUser = '84' + formattedUser.slice(1);
+    }
+
+    setSearchUserTimeout(setTimeout(() => {
+      fetchUserList(formattedUser);
+    }, 500));
+  };
+
+  const [tempUserSelect, setTempUserSelect] = useState(null);
+
+  const handleAddUser = () => {
+    if (tempUserSelect) {
+      const userObj = userList.find(u => u.value === tempUserSelect);
+      if (userObj && !selectedUsers.find(u => u.value === userObj.value)) {
+        setSelectedUsers([...selectedUsers, userObj]);
+        const newIds = [...selectedUsers, userObj].map(u => u.value).join(',');
+        setFormData(prev => ({ ...prev, notifyTargetIds: newIds }));
+      }
+      setTempUserSelect(null);
+    }
+  };
+
+  const handleRemoveUser = (userId) => {
+    const newList = selectedUsers.filter(u => u.value !== userId);
+    setSelectedUsers(newList);
+    setFormData(prev => ({ ...prev, notifyTargetIds: newList.map(u => u.value).join(',') }));
+  };
 
   const [errors, setErrors] = useState({});
 
   const validateField = (name, value) => {
     let error = '';
     if (name === 'title' && !value.trim()) error = 'Vui lòng nhập tên phiên';
-    if (name === 'hostName' && !value.trim()) error = 'Vui lòng nhập tên host';
+    if (name === 'host' && (!value || typeof value !== 'object' || (!value.value && !value._id))) error = 'Vui lòng chọn Host';
     if (name === 'startTime' && !value) error = 'Vui lòng chọn thời gian bắt đầu';
     if (name === 'notifyTitle' && !value) error = 'Vui lòng nhập tiêu đề thông báo';
     if (name === 'notifyContent' && !value) error = 'Vui lòng nhập nội dung thông báo';
@@ -117,7 +238,7 @@ export default function NewSession({ setTab }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isValidTitle = validateField('title', formData.title);
-    const isValidHost = validateField('hostName', formData.hostName);
+    const isValidHost = validateField('host', formData.host);
     const isValidTime = validateField('startTime', formData.startTime);
     const isValidNotifyTitle = validateField('notifyTitle', formData.notifyTitle);
     const isValidNotifyContent = validateField('notifyContent', formData.notifyContent);
@@ -130,7 +251,7 @@ export default function NewSession({ setTab }) {
       return;
     }
     if (!isValidHost) {
-      message.error('Vui lòng điền tên host');
+      message.error('Vui lòng chọn Host');
       return;
     }
     if (!isValidTime) {
@@ -149,20 +270,6 @@ export default function NewSession({ setTab }) {
       message.error('Vui lòng điền tiêu đề và nội dung thông báo');
       return;
     }
-    // 1. Sync room title to Ant Media Server via REST API
-    // try {
-    //   const apiUrl = getAntMediaApiUrl();
-    //   await fetch(`${apiUrl}/rest/v2/broadcasts/${formData.streamIdInput}`, {
-    //     method: 'PUT',
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({ name: formData.title })
-    //   });
-    //   console.log('Successfully synced room title to Ant Media Server:', formData.title);
-    // } catch (apiErr) {
-    //   console.warn('Failed to sync room title to Ant Media Server:', apiErr);
-    // }
 
     try {
       setLoading(true);
@@ -179,9 +286,10 @@ export default function NewSession({ setTab }) {
         info: {
           name: formData.title || undefined,
           description: formData.description || '',
+          // tags: formData.tags || [],
           thumbnailUrl: {
-            mobile: formData.bannerFile?.url || '',
-            tablet: formData.bannerFile?.url || ''
+            mobile: formData.thumbnailFile?.url || formData.bannerFile?.url || '',
+            tablet: formData.thumbnailFile?.url || formData.bannerFile?.url || ''
           },
           banners: {
             mobile: formData.bannerFile?.url ? [formData.bannerFile.url] : [],
@@ -216,9 +324,9 @@ export default function NewSession({ setTab }) {
           },
         },
         roles: {
-          hostId: user.id,
-          broadcasters: [user.id],
-          moderators: [user.id],
+          hostId: host?._id || host?.value || user.id,
+          broadcasters: [host?._id || host?.value || user.id],
+          moderators: [host?._id || host?.value || user.id],
         },
         metadata: {}
       };
@@ -296,7 +404,7 @@ export default function NewSession({ setTab }) {
                 {/* Cột trái (60%) - Form */}
                 <div className="w-full lg:w-[60%]">
                   {/* Nhóm 1: Thông tin cơ bản */}
-                  <div className="space-y-4">
+                  <div className="space-y-4 mb-8">
                     <h4 className="text-white font-medium text-base border-b border-[#1E2633] pb-2">
                       Thông tin cơ bản
                     </h4>
@@ -406,17 +514,69 @@ export default function NewSession({ setTab }) {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm text-[#7E8CA8] mb-1">
-                            Tên Host <span className="text-red-500">*</span>
+                            Chọn Host <span className="text-red-500">*</span>
                           </label>
-                          <input
-                            type="text"
-                            name="hostName"
-                            value={formData.hostName}
-                            onChange={handleChange}
-                            placeholder="Nhập tên người chủ trì"
-                            className={`w-full bg-[#151D2C] border ${errors.hostName ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
-                          />
-                          {errors.hostName && <span className="text-red-500 text-xs mt-1 block">{errors.hostName}</span>}
+                          <ConfigProvider
+                            theme={{
+                              algorithm: theme.darkAlgorithm,
+                              components: {
+                                Select: {
+                                  colorBgContainer: '#151D2C',
+                                  colorBorder: '#2A3441',
+                                  colorPrimary: '#3B82F6',
+                                  controlHeight: 46,
+                                  borderRadius: 8,
+                                }
+                              }
+                            }}
+                          >
+                            <Select
+                              style={{ width: '100%' }}
+                              allowClear
+                              showSearch
+                              optionFilterProp="label"
+                              filterOption={(input, option) => {
+                                return option.label?.toLowerCase().includes(input.toLowerCase());
+                              }}
+                              value={formData.host ? (formData.host.value || formData.host._id) : undefined}
+                              onChange={(value) => {
+                                const selectedHost = hostList.find((h) => h.value === value) || null;
+                                setHost(selectedHost ? selectedHost.value : null);
+                                setFormData((prev) => ({ ...prev, host: selectedHost }));
+                                validateField('host', selectedHost);
+                              }}
+                              placeholder="Chọn host livestream"
+                              options={hostList}
+                              labelRender={(props) => {
+                                const selectedHost = hostList.find((h) => h.value === host);
+                                if (!selectedHost) return props.label;
+                                return (
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src={selectedHost.avatar || images.lmsLG}
+                                      alt={selectedHost.label}
+                                      className="w-[22px] h-[22px] rounded-full object-cover"
+                                    />
+                                    <span>{selectedHost.label}</span>
+                                  </div>
+                                );
+                              }}
+                              optionRender={(option) => (
+                                <div className="flex items-center gap-2">
+                                  <img
+                                    src={option.data.avatar || images.lmsLG}
+                                    alt={option.data.label}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{option.data.label}</span>
+                                    {option.data.title && <span className="text-xs text-gray-500">{option.data.title}</span>}
+                                  </div>
+                                </div>
+                              )}
+                            />
+                          </ConfigProvider>
+                          {errors.host && <span className="text-red-500 text-xs mt-1 block">{errors.host}</span>}
                         </div>
                         <div>
                           <label className="block text-sm text-[#7E8CA8] mb-1">
@@ -455,13 +615,98 @@ export default function NewSession({ setTab }) {
                       </div>
                     </div>
                   </div>
+
+                  <div className="mb-2">
+                    <label className="block text-xs font-bold text-[#7E8CA8] mb-3 uppercase tracking-wider">
+                      CHỦ ĐỀ - TAG
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              tags: prev.tags?.includes(cat.value)
+                                ? prev.tags.filter(t => t !== cat.value)
+                                : [...(prev.tags || []), cat.value]
+                            }))
+                          }}
+                          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${formData.tags?.includes(cat.value)
+                            ? 'bg-[#0f2e20] text-[#4ADE80] border-[#0f2e20]'
+                            : 'bg-transparent text-[#7E8CA8] border-[#2A3441] hover:border-[#7E8CA8]'
+                            }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                      {
+                        isAdding ? (
+                          <div className="flex items-center gap-1" >
+                            <input
+                              autoFocus
+                              type="text"
+                              value={newCategoryName}
+                              onChange={(e) => setNewCategoryName(e.target.value)}
+                              onBlur={() => {
+                                // Delay slight blur to allow clicking the button if needed,
+                                // or just add if there's text
+                                setTimeout(() => {
+                                  if (!newCategoryName.trim()) {
+                                    setIsAdding(false);
+                                  }
+                                }, 200);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddCategory();
+                                if (e.key === 'Escape') setIsAdding(false);
+                              }}
+                              className="px-3 py-1.5 bg-[#0D1424] border border-[#10B981] rounded-full text-xs text-white outline-none w-28"
+                              placeholder="Tên danh mục..."
+                            />
+                            <button
+                              onClick={handleAddCategory}
+                              className="px-2.5 py-1.5 bg-[#10B981] text-white hover:bg-[#059669] rounded-full text-xs font-bold transition-colors"
+                            >
+                              Thêm
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setIsAdding(true)}
+                            className="px-3 py-1.5 bg-transparent text-[#7E8CA8] border border-dashed border-[#2A3441] hover:border-white hover:text-white rounded-full text-xs font-bold transition-all"
+                          >
+                            + Thêm mới
+                          </button>
+                        )}
+                    </div>
+                  </div>
+
                   {/* Nhóm 2: Nội dung truyền thông */}
                   <div className="space-y-4">
                     <h4 className="text-white font-medium text-base border-b border-[#1E2633] pb-2">
                       Nội dung truyền thông
                     </h4>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+                        <div className="flex flex-col h-full">
+                          <label className="block text-sm text-[#7E8CA8] mb-1">
+                            Ảnh Thumbnail (16:9)
+                          </label>
+                          <FileUploadSection
+                            accept="image/*"
+                            uploadType="image"
+                            uploadedFile={thumbnailFile}
+                            setUploadedFile={setThumbnailFile}
+                            setUploadingFile={setUploadingThumbnailFile}
+                            onChange={(file) => {
+                              setFormData((prev) => ({ ...prev, thumbnailFile: file }));
+                              setThumbnailFile(file);
+                            }}
+                            className="flex-1"
+                          />
+                        </div>
                         <div className="flex flex-col h-full">
                           <label className="block text-sm text-[#7E8CA8] mb-1">
                             Ảnh Banner
@@ -673,8 +918,51 @@ export default function NewSession({ setTab }) {
                       </div>
                     )}
                   </div>
-                  <p className="text-center text-xs text-[#7E8CA8] mt-4 max-w-sm mx-auto leading-relaxed">
+                  <p className="text-center text-xs text-[#7E8CA8] mt-4 max-w-sm mx-auto leading-relaxed mb-8">
                     * Ảnh banner sẽ được sử dụng làm hình nền cho màn hình đếm ngược trước khi livestream bắt đầu.
+                  </p>
+
+                  {/* Thumbnail Preview */}
+                  <h4 className="text-white font-medium text-base border-b border-[#1E2633] pb-2 mb-6">
+                    Preview Thumbnail (Hiển thị dạng thẻ)
+                  </h4>
+                  <div className="w-full max-w-[280px] mx-auto bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/5">
+                    <div
+                      className="w-full aspect-[16/9] bg-[#090D14] relative"
+                      style={{
+                        backgroundImage: formData.thumbnailFile?.previewUrl ? `url(${formData.thumbnailFile.previewUrl})` : (formData.bannerFile?.previewUrl ? `url(${formData.bannerFile.previewUrl})` : 'none'),
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                    >
+                      <div className="absolute top-3 left-3 bg-[#ff3b3b] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shadow-md">
+                        Trực tiếp
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-white font-bold text-sm line-clamp-2 mb-3 min-h-[40px]">
+                        {formData.title || 'Tiêu đề phiên livestream của bạn'}
+                      </h3>
+                      <div className="flex items-center gap-1 text-[#f59e0b] mb-4">
+                        {[1, 2, 3, 4, 5].map(i => (
+                          <svg key={i} className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        ))}
+                        <div className="flex items-center gap-1 ml-auto text-[#7E8CA8]">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                          <span className="text-[10px]">0 Học viên</span>
+                        </div>
+                      </div>
+                      <div className="text-[#D4AF37] font-bold text-sm mb-4">
+                        Giá: Liên hệ
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 border border-white/20 rounded-lg py-2 text-center text-[10px] text-white/80 font-bold hover:bg-white/5 transition-colors cursor-pointer">XEM CHI TIẾT</div>
+                        <div className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#FFF5C3] text-black rounded-lg py-2 text-center text-[10px] font-bold hover:opacity-90 transition-opacity cursor-pointer">LIÊN HỆ</div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-center text-xs text-[#7E8CA8] mt-4 max-w-sm mx-auto leading-relaxed">
+                    * Preview Thumbnail hiển thị mô phỏng cách phiên live sẽ xuất hiện trên giao diện danh sách khóa học/livestream.
                   </p>
                 </div>
               </div>
@@ -777,23 +1065,92 @@ export default function NewSession({ setTab }) {
                             <select
                               name="notifyTarget"
                               value={formData.notifyTarget}
-                              onChange={handleChange}
+                              onChange={(e) => {
+                                handleChange(e);
+                                if (e.target.value === 'all') {
+                                  setSelectedUsers([]);
+                                  setFormData(prev => ({ ...prev, notifyTargetIds: '' }));
+                                }
+                              }}
                               className="w-full bg-[#151D2C] border border-[#2A3441] focus:border-[#3B82F6] rounded-lg px-4 py-[11px] text-white outline-none transition-colors appearance-none cursor-pointer"
                             >
                               <option value="all">Tất cả người dùng</option>
-                              <option value="specific">Khách hàng cụ thể</option>
+                              <option value="specific">Danh sách người dùng</option>
                             </select>
 
                             {formData.notifyTarget === 'specific' && (
-                              <div className="mt-3 animate-fade-in">
-                                <input
-                                  type="text"
-                                  name="notifyTargetIds"
-                                  value={formData.notifyTargetIds}
-                                  onChange={handleChange}
-                                  placeholder="Nhập ID/Email (cách nhau dấu phẩy)"
-                                  className="w-full bg-[#151D2C] border border-[#2A3441] focus:border-[#3B82F6] rounded-lg px-4 py-2.5 text-white outline-none transition-colors"
-                                />
+                              <div className="mt-3 animate-fade-in space-y-3">
+                                <div className="flex items-center gap-2 w-full">
+                                  <div className="flex-1 min-w-0">
+                                    <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, components: { Select: { controlHeight: 46 } } }}>
+                                      <Select
+                                        className="w-full"
+                                        showSearch
+                                        value={tempUserSelect}
+                                        placeholder="Tìm kiếm và chọn người dùng"
+                                        defaultActiveFirstOption={false}
+                                        filterOption={false}
+                                        onSearch={handleSearchUser}
+                                        onChange={(val) => setTempUserSelect(val)}
+                                        notFoundContent={null}
+                                        options={userList}
+                                        optionRender={(option) => (
+                                          <div className="flex items-center gap-3 py-0.5 overflow-hidden w-full">
+                                            <div className="flex-shrink-0 flex items-center">
+                                              <img
+                                                src={option.data.avatar || images.lmsLG}
+                                                alt="avatar"
+                                                className="w-9 h-9 rounded-full object-cover bg-[#2A3441]"
+                                              />
+                                            </div>
+                                            <div className="flex flex-col overflow-hidden w-full text-left">
+                                              <span className="font-bold text-white text-[14px] truncate leading-tight mb-0">
+                                                {option.data.fullName || '---'}
+                                              </span>
+                                              <span className="text-[12px] text-[#7E8CA8] truncate mt-0.5">
+                                                {option.data.username !== '---' ? option.data.username : ''}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        )}
+                                      />
+                                    </ConfigProvider>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={handleAddUser}
+                                    className="bg-[#3B82F6] hover:bg-[#2563EB] text-white flex-shrink-0 w-[46px] h-[46px] rounded-lg flex items-center justify-center transition-colors"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                  </button>
+                                </div>
+
+                                {selectedUsers.length > 0 && (
+                                  <div className="bg-[#090D14] border border-[#1E2633] rounded-lg p-3 max-h-[250px] overflow-y-auto space-y-2">
+                                    {selectedUsers.map(user => (
+                                      <div key={user.value} className="flex items-center justify-between bg-[#151D2C] p-2 rounded-md border border-white/5">
+                                        <div className="flex items-center gap-3 overflow-hidden mr-2">
+                                          <img src={user.avatar || images.lmsLG} alt={user.fullName || 'User'} className="w-10 h-10 rounded-full object-cover shrink-0 bg-[#2A3441]" />
+                                          <div className="flex flex-col overflow-hidden">
+                                            <span className="font-bold text-white text-[15px] truncate leading-tight">{user.fullName || user.username || 'No Name'}</span>
+                                            {user.username && <span className="text-[#7E8CA8] text-[13px] truncate mt-0.5">{user.username}</span>}
+                                          </div>
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemoveUser(user.value)}
+                                          className="text-red-500 hover:text-red-400 p-2 rounded-md hover:bg-white/5 transition-colors"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -811,9 +1168,6 @@ export default function NewSession({ setTab }) {
                                 setFormData((prev) => ({ ...prev, notifyImageFile: file }));
                                 setNotifyImageFile(file);
                               }}
-                            // onChange={handleNotifyImageUpload}
-                            // title="Nhấp để tải ảnh lên"
-                            // description="PNG, JPG, GIF lên đến 5MB"
                             />
                           </div>
                         </div>
@@ -843,9 +1197,9 @@ export default function NewSession({ setTab }) {
                           </div>
                           <div className="flex flex-col items-center gap-2 mb-2">
                             <span className="text-white/40 text-[10px] ml-auto">Bây giờ</span>
-                            {formData.notifyImageFile?.url && (
+                            {(formData.notifyImageFile?.previewUrl) && (
                               <div className="w-8 h-8 rounded-lg bg-[#0B111D] shrink-0 overflow-hidden border border-white/10 shadow-inner">
-                                <img src={formData.notifyImageFile?.url} alt="preview" className="w-full h-full object-cover object-center" />
+                                <img src={formData.notifyImageFile?.previewUrl} alt="preview" className="w-full h-full object-cover object-center" />
                               </div>
                             )}
                           </div>
@@ -870,7 +1224,7 @@ export default function NewSession({ setTab }) {
         <div className="flex items-center gap-3 w-full px-6">
           <div className="flex-1"></div>
           <button
-            onClick={() => setTab("sessionList")}
+            onClick={() => navigate("/home")}
             type="button"
             className="px-6 py-2.5 rounded-lg font-medium text-[#7E8CA8] hover:text-white hover:bg-[#151D2C] transition-colors"
           >

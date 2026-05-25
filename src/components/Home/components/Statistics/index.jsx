@@ -12,15 +12,23 @@ import {
   Tooltip,
 } from 'recharts';
 import { StatusBadgeLivestream } from '../components/StatusBadgeLivestream';
+import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
 
-export default function Statistics({ rooms = [], selectedRoomId, setSelectedRoomId }) {
+export default function Statistics() {
+  const { rooms } = useOutletContext();
+  const { roomId } = useParams();
+  const navigate = useNavigate();
   const [historyData, setHistoryData] = useState({ lineData: [], barData: [] });
 
-  useEffect(() => {
-    if (!selectedRoomId && rooms.length > 0) {
-      setSelectedRoomId(rooms[0].id);
-    }
-  }, [rooms, selectedRoomId, setSelectedRoomId]);
+  const selectedRoomId = useMemo(() => {
+    if (roomId) return roomId;
+    if (rooms && rooms.length > 0) return rooms[0].id;
+    return null;
+  }, [roomId, rooms]);
+
+  const handleRoomChange = (value) => {
+    navigate(`/home/statistics/${value}`);
+  };
 
   const currentRoom = useMemo(() => {
     if (!rooms || rooms.length === 0) return null;
@@ -127,7 +135,7 @@ export default function Statistics({ rooms = [], selectedRoomId, setSelectedRoom
           <Select
             value={selectedRoomId}
             // optionLabelProp="display"
-            onChange={setSelectedRoomId}
+            onChange={handleRoomChange}
             options={rooms.map(r => {
               return ({
                 value: r.id,

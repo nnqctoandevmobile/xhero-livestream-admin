@@ -7,11 +7,19 @@ function RouteComponent() {
   function renderRoute({ element: Element, children, key, ...params }, index) {
     const routeKey = key || index;
     if (children && children.length > 0) {
+      const parentElement = params?.auth ? (
+        <ProtectRoute>
+          <Element />
+        </ProtectRoute>
+      ) : (
+        <Element />
+      );
+
       return (
         <Route
           key={routeKey}
           {...params}
-          element={<Element />}>
+          element={parentElement}>
           {children
             // .filter((i) => pathAvailable.includes(i.path))
             .map((routeChild, index) => {

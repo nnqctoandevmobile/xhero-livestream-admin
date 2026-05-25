@@ -183,12 +183,14 @@ export default function CountDownView() {
   }, []);
 
   const getAppUrl = useCallback((type) => {
-    const baseLink = import.meta.env.NEXT_PUBLIC_LIVESTREAM_URL || window.location.origin;
-    if (type === 'host') {
-      return `${baseLink}/host/${roomId}`;
+    if (detailData) {
+      const baseLink = import.meta.env.NEXT_PUBLIC_LIVESTREAM_URL || window.location.origin;
+      if (type === 'host') {
+        return `${baseLink}/host/${detailData?.streamSettings?.streamId}`;
+      }
+      return `${baseLink}/live/${detailData?.streamSettings?.streamId}`;
     }
-    return `${baseLink}/live/${roomId}`;
-  }, [roomId]);
+  }, [detailData]);
 
   const handleCopyLink = useCallback((text, type) => {
     navigator.clipboard.writeText(text)

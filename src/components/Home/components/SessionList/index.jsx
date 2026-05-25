@@ -1,12 +1,11 @@
-'use client';
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Badge, Button, Input, Select, Table, Modal, message } from 'antd';
 import { SESSION_STATUS, SESSION_PRIVACY } from '../../../../core/constants';
 import { StatusBadgeLivestream, PrivacyBadgeLivestream } from '../components/StatusBadgeLivestream';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { AdminPanelService } from '../../../../api';
 import RenderPages from '../components/RenderPages';
+import EditSessionModal from '../../../AdminHostStudio/components/CountDownView/EditSessionModal';
 
 const api = new AdminPanelService();
 
@@ -26,7 +25,8 @@ const formatDate = (dateStr) => {
   }
 };
 
-export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
+export default function SessionList() {
+  const { isLoading } = useOutletContext();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [privacyFilter, setPrivacyFilter] = useState('all');
@@ -36,6 +36,9 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [openEditSession, setOpenEditSession] = useState(false);
+  const [sessionToEdit, setSessionToEdit] = useState(null);
 
   // Pagination & Server Side Filter states
   const [page, setPage] = useState(1);
@@ -130,12 +133,10 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
   }, [rooms]);
 
   const handleChangeTab = (roomId) => {
-    setSelectedRoomId(roomId);
-    setTab('statistics');
+    navigate(`/home/statistics/${roomId}`);
   };
 
   const handleJoinStudio = (roomId) => {
-    setSelectedRoomId(roomId);
     navigate(`/admin-host-studio/${roomId}`);
   };
 
@@ -268,6 +269,10 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
             </Button>
 
             <Button
+              onClick={() => {
+                setSessionToEdit(room);
+                setOpenEditSession(true);
+              }}
               className="
                 !bg-transparent
                 !border-[#2A3547]
@@ -497,6 +502,7 @@ export default function SessionList({ isLoading, setTab, setSelectedRoomId }) {
         </div>
       </Modal>
 
+      <EditSessionModal open={openEditSession} detailData={sessionToEdit} onCancel={() => setOpenEditSession(false)} />
     </section>
   );
 }

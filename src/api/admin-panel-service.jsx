@@ -36,6 +36,14 @@ class AdminPanelService extends NewService {
   actGetLivestreamCountdown = (id) => {
     return this.get(this.apiUlr() + '/api/streams/' + id + '/countdown');
   }
+
+  actGetHostList = (params) => {
+    return this.get(this.apiUlr() + '/admin/consulting-profiles/list-expert', params);
+  }
+
+  actGetUserList = (params) => {
+    return this.get(this.apiUlr() + '/admin/users', params);
+  };
 }
 
 export default AdminPanelService;

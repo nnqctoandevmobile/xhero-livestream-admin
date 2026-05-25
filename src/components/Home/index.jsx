@@ -2,22 +2,15 @@ import Header from '../Header';
 import SideBar from '../SideBar';
 import { useEffect, useState, useRef } from 'react';
 
-import SessionList from './components/SessionList';
 import { ref, onValue } from 'firebase/database';
 import { rtdb } from '../../core/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hook/useAuth';
-import NewSession from './components/NewSession';
-import ConsultingForms from './components/ConsultingForms';
-import Statistics from './components/Statistics';
-import VideoPlayback from './components/VideoPlayback';
 import { SESSION_STATUS } from '../../core/constants';
 import { useIsMobile } from '../../hook/useMediaQuery';
 
 export default function Home() {
-  const [tab, setTab] = useState('sessionList');
   const [rooms, setRooms] = useState([]);
-  const [selectedRoomId, setSelectedRoomId] = useState(null);
   const prevLiveRoomsRef = useRef(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const { isLogged } = useAuth();
@@ -109,8 +102,7 @@ export default function Home() {
       });
 
       if (endedRooms.length > 0) {
-        setSelectedRoomId(endedRooms[0]);
-        setTab('statistics');
+        navigate(`/home/statistics/${endedRooms[0]}`);
       }
 
       prevLiveRoomsRef.current = currentLiveRooms;
@@ -141,27 +133,9 @@ export default function Home() {
           />
         )}
 
-        <SideBar tab={tab} setTab={setTab} isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+        <SideBar isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
         <main className="flex-1 p-2 md:p-6 overflow-y-auto">
-          {tab === 'sessionList' && (
-            <SessionList isLoading={false} setTab={setTab} setSelectedRoomId={setSelectedRoomId} />
-          )}
-          {tab === 'newSession' && (
-            <NewSession setTab={setTab} />
-          )}
-          {tab === 'consultingForms' && (
-            <ConsultingForms />
-          )}
-          {tab === 'videoPlayback' && (
-            <VideoPlayback />
-          )}
-          {tab === 'statistics' && (
-            <Statistics
-              rooms={rooms}
-              selectedRoomId={selectedRoomId}
-              setSelectedRoomId={setSelectedRoomId}
-            />
-          )}
+          <Outlet context={{ rooms, isLoading }} />
         </main>
       </div>
     </div>
