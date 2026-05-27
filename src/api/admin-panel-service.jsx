@@ -10,7 +10,7 @@ class AdminPanelService extends NewService {
   };
 
   actPostNotification = (payload) => {
-    return this.postFormData(this.apiUlr() + '/admin/notifications', payload);
+    return this.post(this.apiUlr() + '/admin/notifications', payload);
   }
 }
 
