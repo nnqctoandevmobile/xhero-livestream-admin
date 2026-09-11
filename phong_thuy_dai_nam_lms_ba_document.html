@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phong Thủy Đại Nam LMS - Tài Liệu Đặc Tả Nghiệp Vụ & Kiến Trúc Hệ Thống (v2.0 Rebuild)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font Nunito Sans & Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..900;1,6..12,300..900&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito Sans', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+
+    .card-clean {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-clean:hover {
+      border-color: #cbd5e1;
+    }
+
+    .alert-tip {
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      color: #166534;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Sticky navigation scroll spy */
+    .toc-item.active {
+      color: #2563eb;
+      background: #eff6ff;
+      border-left: 3px solid #2563eb;
+      font-weight: 700;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Dynamic Watermark Animation */
+    @keyframes float-watermark {
+      0% { top: 15%; left: 15%; opacity: 0.18; }
+      25% { top: 60%; left: 35%; opacity: 0.28; }
+      50% { top: 25%; left: 65%; opacity: 0.15; }
+      75% { top: 75%; left: 70%; opacity: 0.3; }
+      100% { top: 15%; left: 15%; opacity: 0.18; }
+    }
+
+    .dynamic-watermark {
+      position: absolute;
+      animation: float-watermark 24s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+  <!-- LIGHT THEME BRAND HEADER -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+    <div class="flex items-center gap-3">
+      <!-- Blue Emblem SVG -->
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-base md:text-lg font-extrabold tracking-tight text-slate-900 uppercase">PHONG THỦY ĐẠI NAM</span>
+          <span class="text-[10px] font-bold text-white bg-blue-600 px-2 py-0.5 rounded-md uppercase tracking-wider">LMS v2.0 REBUILD</span>
+        </div>
+        <span class="text-[10px] text-slate-500 uppercase tracking-widest block font-semibold">Tài Liệu Đặc Tả Nghiệp Vụ & Kiến Trúc Hệ Thống (BRD)</span>
+      </div>
+    </div>
+
+    <!-- SEGMENTED 3-TAB SWITCHER -->
+    <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+      <button id="btn-tab-spec" onclick="switchDocTab('spec')"
+        class="px-4 md:px-5 py-2 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm">
+        1. Đặc Tả Nghiệp Vụ (BA BRD)
+      </button>
+      <button id="btn-tab-flow" onclick="switchDocTab('flow')"
+        class="px-4 md:px-5 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-blue-600 hover:bg-white/60">
+        2. Sơ Đồ Kiến Trúc & Luồng Vận Hành
+      </button>
+      <button id="btn-tab-sim" onclick="switchDocTab('sim')"
+        class="px-4 md:px-5 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-blue-600 hover:bg-white/60 flex items-center gap-1.5">
+        <span>3. Mô Phỏng Giao Diện Tương Tác (UI/UX)</span>
+      </button>
+    </div>
+
+    <!-- METADATA BADGES -->
+    <div class="hidden xl:flex items-center gap-4 text-xs font-medium text-slate-500">
+      <span class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        Trạng thái: <strong class="text-slate-800">Sẵn sàng triển khai</strong>
+      </span>
+      <span class="h-4 w-px bg-slate-200"></span>
+      <span>Lead BA: <strong class="text-blue-600">Nguyễn Quốc Toàn</strong></span>
+      <span class="h-4 w-px bg-slate-200"></span>
+      <a href="https://daotao.phongthuydainam.vn/vi" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
+        <span>Web hiện tại</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ========================================================================================== -->
+  <!-- TAB 1: ĐẶC TẢ NGHIỆP VỤ (BA BRD SPECIFICATION - DEFAULT ACTIVE) -->
+  <!-- ========================================================================================== -->
+  <div id="tab-content-spec" class="flex flex-1 w-full max-w-[1650px] mx-auto px-4 md:px-8 py-8 gap-8 relative">
+
+    <!-- LEFT STICKY TABLE OF CONTENTS -->
+    <aside class="hidden lg:block w-[300px] shrink-0 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto pr-2">
+      <div class="space-y-6">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-2 pl-2">I. TỔNG QUAN HỆ THỐNG</span>
+          <nav class="space-y-1 text-xs">
+            <a href="#spec-intro" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">1. Mục tiêu & Bối cảnh Rebuild</a>
+            <a href="#spec-rbac" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">2. Ma trận Phân quyền (RBAC)</a>
+            <a href="#spec-ranks" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">3. Lộ trình 4 Cấp bậc Danh vị</a>
+          </nav>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-2 pl-2">II. PHÂN HỆ CHỨC NĂNG</span>
+          <nav class="space-y-1 text-xs">
+            <a href="#spec-video-lms" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all font-bold text-blue-700">4. Không Gian Học & Trình Phát Video (Core)</a>
+            <a href="#spec-course-detail" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">5. Mục Lục Giáo Trình, Học Thử & Bộ Dụng Cụ</a>
+            <a href="#spec-exam-engine" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">6. Động cơ Khảo thí 8 Dạng Câu hỏi Phong Thủy</a>
+            <a href="#spec-auth" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">7. Auth, QR XheroApp & DRM 3 Thiết bị</a>
+            <a href="#spec-catalog" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">8. Catalog, Countdown & Roadmap Rồng Vàng</a>
+            <a href="#spec-checkout" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">9. Đơn hàng, 5 Cổng Thanh Toán & Điểm XheroXu</a>
+            <a href="#spec-activation" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">10. Kích hoạt Khóa học bằng Mã Code</a>
+            <a href="#spec-gamification" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">11. BXH Podium & Cấp Chứng chỉ QR</a>
+            <a href="#spec-referral" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">12. Chia sẻ Nhận Xu & Đổi Voucher Ưu Đãi</a>
+            <a href="#spec-news" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">13. Cổng Tin tức & Lead Capture Tư Vấn</a>
+          </nav>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-2 pl-2">III. QUY TẮC & KIẾN TRÚC</span>
+          <nav class="space-y-1 text-xs">
+            <a href="#spec-business-rules" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">14. Quy tắc Nghiệp vụ Cốt lõi (Business Rules)</a>
+            <a href="#spec-schema" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">15. Sơ đồ Thực thể Cơ sở Dữ liệu (ERD)</a>
+            <a href="#spec-nfr" class="toc-item block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">16. Tiêu chuẩn Kỹ thuật Phi chức năng (NFR)</a>
+          </nav>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN SPECIFICATION CONTENT -->
+    <main class="flex-1 min-w-0 space-y-10">
+
+      <!-- SECTION 1: INTRO -->
+      <section id="spec-intro" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG I: TỔNG QUAN DỰ ÁN</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">Đặc Tả Nền Tảng LMS Phong Thủy Đại Nam (Rebuild v2.0)</h1>
+          </div>
+          <span class="text-xs bg-blue-50 text-blue-700 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 font-mono">PTDN-LMS-2026</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 block">Đơn vị chủ quản</span>
+            <strong class="text-slate-900 text-sm block mt-1">Viện Phong Thủy Khoa Học Toàn Cầu</strong>
+            <span class="text-xs text-blue-600 mt-0.5 block font-medium">Phong Thủy Đại Nam Chính Tông</span>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 block">Quy mô phân tích</span>
+            <strong class="text-slate-900 text-sm block mt-1">69 Màn hình Figma Chuẩn Hóa</strong>
+            <span class="text-xs text-emerald-600 mt-0.5 block">Đầy đủ Desktop, Tablet, Mobile Responsive</span>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 block">Mục tiêu Rebuild</span>
+            <strong class="text-slate-900 text-sm block mt-1">Trọng tâm: Trải nghiệm Học & Xem Video</strong>
+            <span class="text-xs text-blue-600 mt-0.5 block">Player tương tác, Watermark DRM, Khảo thí 8 dạng đề</span>
+          </div>
+        </div>
+
+        <div class="alert-tip p-4 rounded-xl text-sm leading-relaxed">
+          <strong class="block font-bold mb-1 text-blue-900">Bối cảnh dự án & Mục tiêu Tái Thiết Toàn Diện:</strong>
+          Website đào tạo hiện tại (<a href="https://daotao.phongthuydainam.vn/vi" target="_blank" class="underline font-bold text-blue-700">daotao.phongthuydainam.vn</a>) đang sử dụng kiến trúc cũ. Phiên bản Rebuild v2.0 đặt <strong>Không gian học tập & Trình phát video bài giảng</strong> làm trung tâm trải nghiệm, kết hợp tông màu Trắng - Xanh Blue thanh lịch, cải tiến động cơ khảo thí 8 dạng câu hỏi, tích hợp kiểm soát phiên đăng nhập DRM chống chia sẻ tài khoản và số hóa quy trình cấp chứng chỉ xác thực QR.
+        </div>
+      </section>
+
+      <!-- SECTION 2: RBAC -->
+      <section id="spec-rbac" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG II: PHÂN QUYỀN HỆ THỐNG</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Ma Trận Phân Quyền Người Dùng (Role-Based Access Control)</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+            <thead class="bg-slate-100 text-slate-700 uppercase font-bold">
+              <tr>
+                <th class="p-3.5 border-b border-slate-200">Tính năng / Nghiệp vụ</th>
+                <th class="p-3.5 border-b border-slate-200 text-center">Khách Vãng Lai</th>
+                <th class="p-3.5 border-b border-slate-200 text-center">Học Viên</th>
+                <th class="p-3.5 border-b border-slate-200 text-center">Giảng Viên</th>
+                <th class="p-3.5 border-b border-slate-200 text-center">Quản Trị Viên</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white text-slate-700">
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-semibold text-slate-900">Xem video bài giảng & Giáo trình chính thức</td>
+                <td class="p-3.5 text-center text-red-500 font-semibold">Khóa</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Nếu đã sở hữu</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Có</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Toàn quyền</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-semibold text-slate-900">Trải nghiệm bài giảng nhãn [HỌC THỬ]</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Miễn phí</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Có</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Có</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Có</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-semibold text-slate-900">Làm bài kiểm tra & Chấm điểm tự động</td>
+                <td class="p-3.5 text-center text-red-500 font-semibold">Cần mua khóa</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Tối đa 3 lượt</td>
+                <td class="p-3.5 text-center text-amber-600 font-medium">Kiểm thử đề</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Quản lý</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-semibold text-slate-900">Chấm bài thi tự luận luận đoán thực địa</td>
+                <td class="p-3.5 text-center text-slate-300">-</td>
+                <td class="p-3.5 text-center text-slate-300">-</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Chấm & Nhận xét</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Duyệt kết quả</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-semibold text-slate-900">Xuất chứng chỉ điện tử & Mã QR tra cứu</td>
+                <td class="p-3.5 text-center text-slate-300">-</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Khi Đạt >= 25/30</td>
+                <td class="p-3.5 text-center text-slate-300">-</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Ký số phát hành</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-semibold text-slate-900">Bảo mật phiên đăng nhập DRM (Tối đa 3 thiết bị)</td>
+                <td class="p-3.5 text-center text-slate-300">N/A</td>
+                <td class="p-3.5 text-center text-red-600 font-bold">Khóa khi vượt 3</td>
+                <td class="p-3.5 text-center text-amber-600">Áp dụng</td>
+                <td class="p-3.5 text-center text-emerald-600 font-bold">Mở khóa DRM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION 3: RANKS -->
+      <section id="spec-ranks" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG III: HỆ THỐNG DANH VỊ HỌC THUẬT</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Lộ Trình Thăng Bậc 4 Cấp Độ Phong Thủy</h2>
+        </div>
+
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Nền tảng xây dựng cơ chế phân cấp học thuật theo lộ trình rõ ràng, khích lệ học viên hoàn thành các khóa học với thông báo tiến trình trực quan: <strong class="text-blue-600">"Học thêm 02 khóa để lên cấp Thầy Phong Thủy"</strong>.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Rank 1 -->
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 relative space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">CẤP 1</span>
+              <span class="text-xs font-mono font-bold text-slate-400">#BRONZE</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">HỌC VIÊN</h3>
+            <p class="text-xs text-slate-500">Môn sinh mới đăng ký tài khoản và bắt đầu học khóa căn bản.</p>
+            <div class="text-[11px] text-blue-700 bg-blue-50 p-2 rounded border border-blue-100">
+              <strong>Điều kiện:</strong> Đăng ký tài khoản & hoàn thành 1 khóa Cơ bản.
+            </div>
+          </div>
+
+          <!-- Rank 2 -->
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 relative space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">CẤP 2</span>
+              <span class="text-xs font-mono font-bold text-blue-400">#SILVER</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">CHUYÊN GIA PHONG THỦY</h3>
+            <p class="text-xs text-slate-500">Nắm vững nguyên lý Ngũ hành, Bát quái và phương vị mặt bằng.</p>
+            <div class="text-[11px] text-blue-700 bg-blue-50 p-2 rounded border border-blue-100">
+              <strong>Điều kiện:</strong> Hoàn thành 2 khóa cơ bản + Thi đạt điểm >= 80%.
+            </div>
+          </div>
+
+          <!-- Rank 3 -->
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 relative space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">CẤP 3</span>
+              <span class="text-xs font-mono font-bold text-indigo-400">#AMETHYST</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">THẦY PHONG THỦY</h3>
+            <p class="text-xs text-slate-500">Có năng lực luận đoán trạch đất, phân cung điểm hướng thực địa.</p>
+            <div class="text-[11px] text-indigo-700 bg-indigo-50 p-2 rounded border border-indigo-100">
+              <strong>Điều kiện:</strong> Hoàn thành 4 khóa nâng cao + Đạt đồ án thực hành.
+            </div>
+          </div>
+
+          <!-- Rank 4 -->
+          <div class="bg-blue-50/60 p-5 rounded-xl border border-blue-300 relative space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-600 text-white">CẤP 4 (ĐỈNH CAO)</span>
+              <span class="text-xs font-mono font-bold text-blue-600">#GOLD</span>
+            </div>
+            <h3 class="text-base font-bold text-blue-900">PHONG THỦY SƯ</h3>
+            <p class="text-xs text-slate-600">Bậc thầy chân truyền, thông thạo Kỳ Môn Độn Giáp, Âm trạch.</p>
+            <div class="text-[11px] text-blue-800 bg-white p-2 rounded border border-blue-200">
+              <strong>Điều kiện:</strong> Tốt nghiệp Khóa Chuyên Sâu + Ban Chuyên Môn phê duyệt.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: VIDEO LMS & WATERMARK (CORE MODULE) -->
+      <section id="spec-video-lms" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG IV: TRỌNG TÂM TRẢI NGHIỆM HỌC TẬP</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Không Gian Học Tập & Trình Phát Video Bài Giảng Tương Tác</h2>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Đây là phân hệ cốt lõi nhất của LMS Phong Thủy Đại Nam, phục vụ hàng ngàn học viên theo dõi các bài giảng chuyên môn của ThS. Nguyễn Trọng Mạnh.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <strong class="text-slate-900 font-bold text-sm block">Chế Độ Mở Rộng (Theater Mode)</strong>
+              <p class="text-slate-600">Cho phép ẩn thanh danh sách bài giảng để mở rộng kích thước video ra toàn màn hình, giúp theo dõi rõ nét từng vị trí trên La kinh và sơ đồ phong thủy.</p>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <strong class="text-slate-900 font-bold text-sm block">Watermark Động Định Danh (DRM)</strong>
+              <p class="text-slate-600">Chạy ngẫu nhiên dòng chữ mờ <code>User ID - Họ tên - SĐT</code> đổi vị trí liên tục trên video, ngăn chặn triệt để hành vi quay lén bài giảng.</p>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <strong class="text-slate-900 font-bold text-sm block">Tự Động Lưu Tiến Độ Học (Auto-progress)</strong>
+              <p class="text-slate-600">Gửi tín hiệu ghi nhận mỗi 10 giây. Khi xem đạt từ 85% thời lượng trở lên, bài học tự động chuyển trạng thái <strong class="text-emerald-600">Hoàn thành</strong> và mở khóa bài tiếp theo.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: COURSE DETAIL & STUDY KITS -->
+      <section id="spec-course-detail" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG V: GIÁO TRÌNH & BỘ DỤNG CỤ</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Mục Lục Chương Bài, Tính Năng Học Thử & Bộ Dụng Cụ Thực Hành</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2.5">
+            <h4 class="text-sm font-bold text-blue-900">Tính Năng [HỌC THỬ] Miễn Phí (Free Trial)</h4>
+            <p class="text-slate-600 leading-relaxed">
+              Trên mục lục chương trình đào tạo, các bài mở đầu (ví dụ: <em>Bài 1: Sứ mệnh của Huyền học đệ tử</em>) được gắn nhãn <strong class="text-blue-600">[HỌC THỬ]</strong>. Học viên chưa mua khóa học vẫn có thể bấm xem trọn vẹn để đánh giá nội dung trước khi thanh toán.
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2.5">
+            <h4 class="text-sm font-bold text-blue-900">Bộ Dụng Cụ Thực Hành Đi Kèm (Study Kits)</h4>
+            <p class="text-slate-600 leading-relaxed">
+              Trang chi tiết khóa học tích hợp box "Dụng cụ cần thiết" cho phép chọn mua cùng khóa học:
+            </p>
+            <ul class="text-slate-700 space-y-1 list-disc list-inside">
+              <li><strong>Thước Lập Cực:</strong> Xác định tâm nhà và phân bổ 8 cung 24 sơn hướng.</li>
+              <li><strong>Sổ Tay Đại Đạo Chí Giản:</strong> Cẩm nang tra cứu bảng số liệu.</li>
+              <li><strong>Bút Ba Màu:</strong> Đánh dấu các phương vị Cát - Hung trên bản vẽ.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: EXAM ENGINE -->
+      <section id="spec-exam-engine" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG VI: ĐỘNG CƠ KHẢO THÍ ĐA DẠNG</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Động Cơ Thi Cử Phong Thủy 8 Dạng Câu Hỏi Tương Tác</h2>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <p class="text-sm text-slate-600">
+            Hệ thống khảo thí hỗ trợ đồng hồ đếm ngược 30 phút, nút nộp bài rõ ràng, tự động thu bài khi hết giờ và cung cấp 8 dạng đề bài chuyên sâu:
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">1. Chọn Đúng / Sai</strong>
+              <span class="text-slate-500">Kiểm tra tính chuẩn xác của các mệnh đề phong thủy.</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">2. Trắc nghiệm 1 đáp án</strong>
+              <span class="text-slate-500">Chọn 1 phương án chính xác nhất trong 4 lựa chọn (Single Choice).</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">3. Chọn nhiều đáp án</strong>
+              <span class="text-slate-500">Tích chọn đồng thời các yếu tố phù hợp (Multiple Choice Checkbox).</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">4. Nối đáp án (Matching)</strong>
+              <span class="text-slate-500">Kéo nối các cặp phương vị với cung Bát quái tương ứng.</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">5. Kéo thả hình ảnh</strong>
+              <span class="text-slate-500">Kéo thả vật phẩm, cây xanh vào đúng vị trí trên sơ đồ mặt bằng.</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">6. Đọc hiểu văn bản</strong>
+              <span class="text-slate-500">Đọc đoạn trích sách cổ học và trả lời câu hỏi phân tích bên dưới.</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">7. Điền vào chỗ trống</strong>
+              <span class="text-slate-500">Điền từ ngữ còn thiếu vào câu khẩu quyết nguyên lý.</span>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <strong class="text-slate-900 block mb-1">8. Tự luận luận đoán</strong>
+              <span class="text-slate-500">Nhập bài phân tích trạch đất. Giảng viên sẽ chấm điểm thủ công.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 7: AUTH & DRM -->
+      <section id="spec-auth" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG VII: XÁC THỰC & BẢO VỆ BẢN QUYỀN</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Đăng Nhập QR XheroApp & Chính Sách Giới Hạn 3 Thiết Bị (DRM)</h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <div class="space-y-3 bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <strong class="text-slate-900 text-sm block">Đăng Nhập Quét QR Qua XheroApp</strong>
+            <p class="text-slate-600 leading-relaxed">
+              Mở app XheroApp trên điện thoại, quét mã QR trên màn hình LMS để đăng nhập tức thì không cần gõ mật khẩu. Giao diện web cập nhật hiển thị Avatar và Tên học viên qua WebSocket.
+            </p>
+          </div>
+          <div class="space-y-3 bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <strong class="text-slate-900 text-sm block">Khóa Tự Động Khi Đăng Nhập Thiết Bị Thứ 4</strong>
+            <p class="text-slate-600 leading-relaxed">
+              Hệ thống theo dõi phiên qua Redis. Nếu phát hiện thiết bị thứ 4 đăng nhập cùng lúc, tài khoản lập tức bị khóa tạm thời kèm popup thông báo liên hệ Hotline 1900 989 919.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 8: CATALOG -->
+      <section id="spec-catalog" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG VIII: DANH MỤC & LỘ TRÌNH</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Danh Mục Khóa Học & Nút Nổi Lộ Trình Đào Tạo</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5">
+            <strong class="text-slate-900 font-bold block">5 Cấp Độ Khóa Học</strong>
+            <p class="text-slate-500">Tất cả | Cơ bản | Nâng cao | Chuyên sâu | Doanh nghiệp.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5">
+            <strong class="text-slate-900 font-bold block">Nhãn ONLINE / TRỰC TIẾP</strong>
+            <p class="text-slate-500">Phân biệt khóa học video trực tuyến và lớp học thực tế.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5">
+            <strong class="text-slate-900 font-bold block">Floating Roadmap</strong>
+            <p class="text-slate-500">Nút nổi xem bản đồ đào tạo toàn diện.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 9: CHECKOUT -->
+      <section id="spec-checkout" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG IX: ĐƠN HÀNG & THANH TOÁN</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Quy Trình Checkout 5 Cổng Thanh Toán & Điểm XheroXu</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <strong class="text-slate-900 font-bold block mb-1">Ví MoMo</strong>
+            <span class="text-slate-500">Quét mã QR động.</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <strong class="text-slate-900 font-bold block mb-1">Chuyển Khoản ACB</strong>
+            <span class="text-slate-500">Webhook kích hoạt ngay.</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <strong class="text-slate-900 font-bold block mb-1">Thẻ ATM iBanking</strong>
+            <span class="text-slate-500">Cổng NAPAS 40 ngân hàng.</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <strong class="text-slate-900 font-bold block mb-1">Thẻ Quốc Tế</strong>
+            <span class="text-slate-500">Visa, MasterCard 3D Secure.</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <strong class="text-slate-900 font-bold block mb-1">Cổng VNPay</strong>
+            <span class="text-slate-500">Quét mã VNPay-QR.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 10: ACTIVATION -->
+      <section id="spec-activation" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG X: KÍCH HOẠT KHÓA HỌC</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Kích Hoạt Khóa Học Bằng Mã License Key</h2>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Học viên nhập mã định dạng <code>XXXX-XXXX</code> trên Header để tự động kích hoạt khóa học vào tài khoản. Mỗi mã kích hoạt sử dụng 1 lần duy nhất.
+        </p>
+      </section>
+
+      <!-- SECTION 11: GAMIFICATION -->
+      <section id="spec-gamification" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG XI: VINH DANH & CHỨNG CHỈ</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Bảng Xếp Hạng Podium & Chứng Chỉ Điện Tử QR</h2>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Vinh danh Top 1-2-3 học viên xuất sắc nhất theo Điểm thi, Vòng kết nối và Thời gian làm bài. Cấp chứng chỉ điện tử có mã QR tra cứu tính xác thực toàn cầu.
+        </p>
+      </section>
+
+      <!-- SECTION 12: REFERRAL -->
+      <section id="spec-referral" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG XII: TIẾP THỊ LIÊN KẾT & TÍCH XU</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Cơ Chế Giới Thiệu Bạn Bè & Ví Tích Lũy Điểm XheroXu</h2>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Chia sẻ mã giới thiệu cá nhân: Bạn bè đăng ký nhận 5 XheroXu, người giới thiệu nhận 10 XheroXu vào ví để đổi voucher giảm giá hoặc khóa học miễn phí.
+        </p>
+      </section>
+
+      <!-- SECTION 13: NEWS -->
+      <section id="spec-news" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG XIII: CỔNG THÔNG TIN & THU THẬP LEADS</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Cổng Tin Tức Huyền Học & Form Thu Thập Yêu Cầu Tư Vấn</h2>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Bài viết cẩm nang chuẩn SEO, có mục lục tự động (TOC) và form thu thập thông tin khách hàng cần tư vấn phong thủy trực tiếp đẩy vào CRM.
+        </p>
+      </section>
+
+      <!-- SECTION 14: BUSINESS RULES -->
+      <section id="spec-business-rules" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG XIV: QUY TẮC NGHIỆP VỤ CỐT LÕI</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Tổng Hợp Quy Tắc Nghiệp Vụ (Business Rules)</h2>
+        </div>
+        <div class="space-y-2.5 text-xs">
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><strong class="text-slate-900">BR-01 (Sở Hữu Trọn Đời):</strong> Khóa học sau khi mua có giá trị học trọn đời, xem lại không giới hạn.</div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><strong class="text-slate-900">BR-02 (Khảo Thí 3 Lượt):</strong> Mỗi bài kiểm tra tối đa 3 lần làm. Điểm lấy theo lần cao nhất. Trượt cả 3 lần bị khóa 24h.</div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><strong class="text-slate-900">BR-03 (Chấm Tự Luận):</strong> Trắc nghiệm chấm tự động tức thì. Tự luận chuyển cho giảng viên chấm thủ công.</div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><strong class="text-slate-900">BR-04 (DRM 3 Thiết Bị):</strong> Đăng nhập tối đa 3 thiết bị đồng thời. Thiết bị thứ 4 sẽ tạm khóa tài khoản.</div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><strong class="text-slate-900">BR-05 (Tiêu Dùng XheroXu):</strong> 1 Xu = 1.000đ. Khấu trừ tối đa 30% giá trị đơn hàng, không quy đổi ra tiền mặt.</div>
+        </div>
+      </section>
+
+      <!-- SECTION 15: SCHEMA & ERD -->
+      <section id="spec-schema" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG XV: THIẾT KẾ CƠ SỞ DỮ LIỆU</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Mô Hình Dữ Liệu Thực Thể (Database Schema)</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div class="bg-slate-900 text-slate-100 p-4 rounded-xl">
+            <strong class="text-blue-400 block font-bold mb-2">TABLE: users & user_devices (DRM)</strong>
+            <pre class="text-[11px] text-slate-300 overflow-x-auto">users (id, phone, email, full_name, rank_level, status);
+user_devices (id, user_id, device_fingerprint, device_name, last_active_at);</pre>
+          </div>
+          <div class="bg-slate-900 text-slate-100 p-4 rounded-xl">
+            <strong class="text-blue-400 block font-bold mb-2">TABLE: courses & lessons</strong>
+            <pre class="text-[11px] text-slate-300 overflow-x-auto">courses (id, title, category, type, price, status);
+lessons (id, course_id, title, video_url, duration_seconds, is_trial);</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 16: NFR -->
+      <section id="spec-nfr" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-200 pb-3">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">CHƯƠNG XVI: YÊU CẦU PHI CHỨC NĂNG</span>
+          <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1">Tiêu Chuẩn Kỹ Thuật Phi Chức Năng (NFR)</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200"><strong class="text-slate-900 block mb-1">1. Hiệu Năng</strong>Phản hồi API &lt; 200ms, tải trang đầu &lt; 1.2s, chịu tải 10.000 học viên đồng thời.</div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200"><strong class="text-slate-900 block mb-1">2. Tương Thích</strong>Responsive hoàn hảo Desktop, iPad Tablet, Mobile iOS/Android.</div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200"><strong class="text-slate-900 block mb-1">3. Bảo Mật</strong>Mã hóa HLS Stream, Watermark động chống quay lén, kiểm soát 3 thiết bị.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========================================================================================== -->
+  <!-- TAB 2: SƠ ĐỒ KIẾN TRÚC & TOÀN BỘ LUỒNG VẬN HÀNH HỆ THỐNG (END-TO-END SYSTEM FLOWS) -->
+  <!-- ========================================================================================== -->
+  <div id="tab-content-flow" class="hidden flex-1 w-full max-w-[1650px] mx-auto px-4 md:px-8 py-8 space-y-10" style="display: none;">
+
+    <!-- TAB 2 HEADER & FLOW QUICK-INDEX -->
+    <div class="card-clean rounded-2xl p-6 md:p-8 space-y-4 border-l-4 border-l-blue-600 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-black text-blue-700 uppercase tracking-widest">KIẾN TRÚC HỆ THỐNG LMS V2.0</span>
+            <span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">8 Phân Hệ Vận Hành Toàn Diện</span>
+          </div>
+          <h1 class="text-xl md:text-2xl font-black text-slate-900">Bản Đồ Luồng Nghiệp Vụ & Kiến Trúc Vận Hành Phong Thủy Đại Nam</h1>
+          <p class="text-xs text-slate-600 mt-1 max-w-4xl leading-relaxed">
+            Đặc tả chi tiết toàn bộ chuỗi hành trình nghiệp vụ chuẩn hóa từ hơn 60 màn hình thiết kế: Từ khách vãng lai tiếp cận, đăng ký / đăng nhập bảo mật DRM 3 thiết bị, mua khóa học qua 5 cổng thanh toán / kích hoạt mã code, vào phòng học video tương tác có watermark động, thi sát hạch 8 dạng câu hỏi, cấp chứng chỉ điện tử QR, vinh danh bảng vàng Podium đến gamification tích lũy Xu và thăng cấp 4 bậc danh vị.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+          <span>PTDN-SYS-FLOW-2026</span>
+        </div>
+      </div>
+
+      <!-- Quick Jump Navigation Buttons -->
+      <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Xem nhanh:</span>
+        <a href="#flow-master" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">0. Tổng Thể Hành Trình</a>
+        <a href="#flow-auth-drm" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">1. Auth & DRM 3 Thiết Bị</a>
+        <a href="#flow-catalog-code" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">2. Roadmap & Kích Hoạt Code</a>
+        <a href="#flow-checkout-xu" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">3. Đặt Hàng & 5 Cổng Thanh Toán</a>
+        <a href="#flow-classroom-drm" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">4. Phòng Học Video & Bộ Dụng Cụ</a>
+        <a href="#flow-exam-engine" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">5. Khảo Thí 8 Dạng Câu Hỏi</a>
+        <a href="#flow-cert-podium" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">6. Chứng Chỉ QR & Bảng Vàng</a>
+        <a href="#flow-gamification-rank" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">7. Tích Xu & Thăng 4 Bậc Danh Vị</a>
+        <a href="#flow-admin-cms" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold transition-all border border-slate-200">8. Quản Trị Admin & CMS</a>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 0: MASTER LIFECYCLE - CHUỖI GIÁ TRỊ VÀ HÀNH TRÌNH TRỌN ĐỜI CỦA HỌC VIÊN -->
+    <!-- ========================================================================================== -->
+    <div id="flow-master" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 0: TỔNG QUAN CHUỖI GIÁ TRỊ</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Hành Trình Trọn Đời Khép Kín Của Học Viên Phong Thủy Đại Nam</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-blue-50 text-blue-700 px-3 py-1 rounded-lg border border-blue-200 font-bold">7 GIAI ĐOẠN KHÉP KÍN</span>
+      </div>
+
+      <div class="bg-slate-50 p-5 md:p-6 rounded-2xl border border-slate-200 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-3 text-xs">
+          <!-- Stage 1 -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 1</span>
+            <strong class="text-slate-900 block font-bold text-sm">Tiếp Cận</strong>
+            <p class="text-slate-500 text-[11px] leading-relaxed">Khám phá Catalog, xem Roadmap Rồng Vàng 4 chặng, xem Video học thử miễn phí hoặc điền form nhận tư vấn.</p>
+          </div>
+          <!-- Stage 2 -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 2</span>
+            <strong class="text-slate-900 block font-bold text-sm">Xác Thực</strong>
+            <p class="text-slate-500 text-[11px] leading-relaxed">Đăng ký / Đăng nhập (OTP / Password / QR App XheroApp). Hệ thống DRM kiểm soát tối đa 3 thiết bị đồng thời.</p>
+          </div>
+          <!-- Stage 3 -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 3</span>
+            <strong class="text-slate-900 block font-bold text-sm">Sở Hữu</strong>
+            <p class="text-slate-500 text-[11px] leading-relaxed">Đặt hàng qua 5 cổng thanh toán (VietQR, MoMo, ZaloPay, Visa, Chuyển khoản) hoặc kích hoạt bằng Mã Code thẻ cào.</p>
+          </div>
+          <!-- Stage 4 -->
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200 bg-blue-50/40 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-blue-600 text-white px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 4</span>
+            <strong class="text-blue-900 block font-bold text-sm">Học Tập</strong>
+            <p class="text-slate-600 text-[11px] leading-relaxed">Phòng học video bảo mật (Watermark động), mục lục 60 bài, thảo luận Q&A, gửi vận đơn Bộ Dụng Cụ Thước Lập Cực.</p>
+          </div>
+          <!-- Stage 5 -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 5</span>
+            <strong class="text-slate-900 block font-bold text-sm">Khảo Thí</strong>
+            <p class="text-slate-500 text-[11px] leading-relaxed">Bài thi sát hạch 30 câu / 30 phút với 8 dạng câu hỏi phong thủy. Chấm điểm tức thì, sàn Đạt từ 25/30 điểm.</p>
+          </div>
+          <!-- Stage 6 -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 6</span>
+            <strong class="text-slate-900 block font-bold text-sm">Chứng Chỉ</strong>
+            <p class="text-slate-500 text-[11px] leading-relaxed">Cấp chứng chỉ điện tử có mã QR tra cứu công khai. Vinh danh thành tích trên Bảng Vàng Podium Top 1, 2, 3.</p>
+          </div>
+          <!-- Stage 7 -->
+          <div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-1.5 shadow-sm">
+            <span class="text-[10px] font-mono font-bold bg-emerald-600 text-white px-2 py-0.5 rounded block w-fit">GIAI ĐOẠN 7</span>
+            <strong class="text-emerald-900 block font-bold text-sm">Thăng Cấp</strong>
+            <p class="text-slate-600 text-[11px] leading-relaxed">Tích lũy điểm XheroXu, chia sẻ Referral nhận hoa hồng, tích lũy điều kiện để thăng cấp 4 bậc Danh vị Phong Thủy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 1: LUỒNG ĐĂNG KÝ, ĐĂNG NHẬP & BẢO MẬT DRM 3 THIẾT BỊ ĐỒNG THỜI -->
+    <!-- ========================================================================================== -->
+    <div id="flow-auth-drm" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 1: BẢO MẬT TÀI KHOẢN & PHIÊN ĐĂNG NHẬP</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Luồng Xác Thực Đa Kênh (Password / OTP / QR App) & Kiểm Soát DRM 3 Thiết Bị</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: AUTH & DRM</span>
+      </div>
+
+      <!-- Flowchart Visual Steps -->
+      <div class="space-y-4">
+        <!-- 3 Auth Entrypoints -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-200 space-y-2">
+            <strong class="text-blue-900 block font-bold">Kênh A: Mật khẩu Truyền thống</strong>
+            <p class="text-slate-600 text-[11px]">Nhập SĐT / Email + Mật khẩu. Hỗ trợ tính năng "Ghi nhớ đăng nhập" và "Quên mật khẩu" qua OTP.</p>
+          </div>
+          <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-200 space-y-2">
+            <strong class="text-blue-900 block font-bold">Kênh B: Số điện thoại + Mã OTP</strong>
+            <p class="text-slate-600 text-[11px]">Nhập SĐT nhận mã OTP 6 số qua SMS Brandname. Tự động tạo tài khoản mới nếu chưa tồn tại.</p>
+          </div>
+          <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-200 space-y-2">
+            <strong class="text-blue-900 block font-bold">Kênh C: Quét QR bằng XheroApp</strong>
+            <p class="text-slate-600 text-[11px]">Web render Dynamic QR (TTL 180s). Học viên mở App quét mã ➔ Bắn WebSocket xác thực tức thì.</p>
+          </div>
+        </div>
+
+        <div class="text-center font-bold text-slate-400 text-sm">↓ Gửi dữ liệu xác thực về Auth Gateway</div>
+
+        <!-- Verification & DRM Check Architecture -->
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-5 text-xs">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+              <span class="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">BƯỚC 1</span>
+              <strong class="text-slate-900 block font-bold">Validate Thông Tin</strong>
+              <p class="text-slate-500 text-[11px]">Kiểm tra Hash mật khẩu Bcrypt hoặc verify mã OTP SMS. Kiểm tra trạng thái tài khoản không bị cấm (Banned).</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+              <span class="text-[10px] font-mono font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">BƯỚC 2: DRM CHECK</span>
+              <strong class="text-slate-900 block font-bold">Truy vấn Redis Sessions</strong>
+              <p class="text-slate-500 text-[11px]">Lấy danh sách thiết bị đang active của User qua key: <code>user_sessions:{user_id}</code>. Đếm số lượng Active Devices.</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+              <span class="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">BƯỚC 3</span>
+              <strong class="text-slate-900 block font-bold">Đánh Giá Ngưỡng (&lt;= 3)</strong>
+              <p class="text-slate-500 text-[11px]">Nếu số thiết bị hiện tại &lt; 3: Chấp thuận thiết bị mới. Nếu đã đủ 3 thiết bị và xuất hiện thiết bị thứ 4: Kích hoạt bảo vệ.</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+              <span class="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">BƯỚC 4</span>
+              <strong class="text-slate-900 block font-bold">Cấp Token & Đồng Bộ</strong>
+              <p class="text-slate-500 text-[11px]">Cấp JWT Access Token (2h) + Refresh Token (30 ngày). Lưu Fingerprint thiết bị (IP, User-Agent, Device UUID).</p>
+            </div>
+          </div>
+
+          <!-- DRM Branching Condition Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-[10px]">✓</span>
+                <strong class="text-emerald-900 font-bold text-xs">Trường hợp Hợp Lệ (Thiết bị 1, 2 hoặc 3):</strong>
+              </div>
+              <p class="text-emerald-800 text-[11px] leading-relaxed">
+                Học viên đăng nhập thành công. Giao diện tự động chuyển hướng vào Trang Tổng quan (Dashboard) hoặc tiếp tục bài học đang dang dở.
+              </p>
+            </div>
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-[10px]">!</span>
+                <strong class="text-red-900 font-bold text-xs">Trường hợp Vi Phạm DRM (Đăng nhập thiết bị thứ 4):</strong>
+              </div>
+              <p class="text-red-800 text-[11px] leading-relaxed">
+                Ngay lập tức từ chối phiên mới, kích hoạt State <code>SUSPENDED_DRM_ALERT</code>. Hiển thị Popup cảnh báo khóa tài khoản do chia sẻ trái phép, gửi SMS bảo mật và yêu cầu gọi Hotline 1900 989 919 để mở khóa.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 2: LUỒNG KHÁM PHÁ KHÓA HỌC, ROADMAP RỒNG VÀNG & KÍCH HOẠT CODE HỌC -->
+    <!-- ========================================================================================== -->
+    <div id="flow-catalog-code" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 2: TIẾP CẬN & KÍCH HOẠT ĐÀO TẠO</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Khám Phá Giáo Trình, Học Thử & Kích Hoạt Bằng Thẻ Cào (Activation Code)</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: CATALOG & ACTIVATION</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+        <!-- Flow A: Browse & Trial Mode -->
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+            <strong class="text-slate-900 text-sm font-bold">LUỒNG 2A: Khám Phá & Học Thử (Trial Mode)</strong>
+            <span class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded">ONLINE BROWSE</span>
+          </div>
+          <ol class="space-y-3 font-mono text-[11px]">
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">1. Khám Phá Catalog:</span> Học viên lọc theo 4 môn phái (Bát Trạch, Huyền Không, Loan Đầu, Mệnh Lý) hoặc xem Lộ trình Rồng Vàng 4 chặng.
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">2. Xem Chi Tiết Khóa Học:</span> Xem video trailer, thông tin giảng viên ThS. Nguyễn Trọng Mạnh, mục lục 60 bài học và chi tiết Bộ dụng cụ tặng kèm.
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">3. Trải Nghiệm Học Thử:</span> Bấm "HỌC THỬ MIỄN PHÍ" ➔ Xem ngay Bài 1 & Bài 2 không cần thanh toán (có watermark nhận diện).
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">4. Lead Capture Form:</span> Nếu chưa mua ngay, popup ưu đãi sẽ thu thập SĐT để chuyên viên tư vấn gọi điện hỗ trợ giải đáp thắc mắc.
+            </li>
+          </ol>
+        </div>
+
+        <!-- Flow B: Code Activation -->
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+            <strong class="text-slate-900 text-sm font-bold">LUỒNG 2B: Kích Hoạt Mã Học (Code Redemption)</strong>
+            <span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded">PHYSICAL TO DIGITAL</span>
+          </div>
+          <ol class="space-y-3 font-mono text-[11px]">
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">1. Nhận Thẻ Cào:</span> Học viên mua sách, nhận quà tặng hoặc mua gói từ đại lý có mã Code (VD: <code>PTDN-DK99-X72A</code>).
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">2. Nhập Mã Trên Web:</span> Bấm nút "KÍCH HOẠT KHÓA HỌC" trên Header, nhập mã Code và bấm "Xác Nhận".
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">3. Backend Kiểm Tra:</span> Check bảng <code>course_license_codes</code>: Mã có tồn tại? Trạng thái có phải là <code>UNUSED</code>? Đã hết hạn chưa?
+            </li>
+            <li class="bg-emerald-50 p-3 rounded-xl border border-emerald-300 shadow-sm space-y-1">
+              <span class="text-emerald-700 font-bold">4. Mở Khóa Tức Thì:</span> Chuyển trạng thái sang <code>REDEEMED</code>, gán User ID, thêm khóa học vào tài khoản và tự động chuyển vào phòng học.
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 3: LUỒNG ĐẶT HÀNG, CHECKOUT 5 CỔNG & TÍCH / TIÊU ĐIỂM XHEROXU -->
+    <!-- ========================================================================================== -->
+    <div id="flow-checkout-xu" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 3: TÀI CHÍNH & THANH TOÁN TỰ ĐỘNG</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Quy Trình Đặt Hàng, 5 Cổng Thanh Toán Tự Động & Tiêu Điểm XheroXu</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: CHECKOUT & WALLET</span>
+      </div>
+
+      <!-- Linear Process Bar -->
+      <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-6 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 font-mono">
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 1</span>
+            <strong class="text-slate-900 block">Vào Giỏ Hàng</strong>
+            <p class="text-[11px] text-slate-500">Xem khóa học, kiểm tra bộ dụng cụ kèm theo, nhập thông tin xuất hóa đơn VAT (nếu cần).</p>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 2</span>
+            <strong class="text-slate-900 block">Áp Dụng Ưu Đãi</strong>
+            <p class="text-[11px] text-slate-500">Nhập mã Voucher giảm giá + Tích chọn Tiêu điểm XheroXu (khấu trừ tối đa 30% giá trị).</p>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 shadow-sm space-y-1">
+            <span class="text-[10px] font-bold text-blue-700">BƯỚC 3</span>
+            <strong class="text-blue-900 block">Chọn 1 Trong 5 Cổng</strong>
+            <p class="text-[11px] text-slate-600">VietQR Napas247, MoMo, ZaloPay, Thẻ Quốc tế Visa/Mastercard hoặc Chuyển khoản trực tiếp.</p>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 4</span>
+            <strong class="text-slate-900 block">Xử Lý Webhook</strong>
+            <p class="text-[11px] text-slate-500">IPN Webhook gửi về, verify chữ ký HMAC-SHA256, Idempotency Key chống duplicate.</p>
+          </div>
+          <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-300 shadow-sm space-y-1">
+            <span class="text-[10px] font-bold text-emerald-700">BƯỚC 5</span>
+            <strong class="text-emerald-900 block">Kích Hoạt Khóa Học</strong>
+            <p class="text-[11px] text-emerald-800">Cập nhật đơn PAID, tự động ghi danh (Auto-enroll), WebSocket bắn popup chúc mừng lên màn hình.</p>
+          </div>
+        </div>
+
+        <!-- 5 Gateways Specification Grid -->
+        <div class="border-t border-slate-200 pt-4">
+          <span class="text-xs font-bold text-slate-700 block mb-3 uppercase tracking-wider">Chi tiết cơ chế xử lý của 5 Cổng Thanh Toán:</span>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <strong class="text-blue-700 block font-bold">1. VietQR (Napas247)</strong>
+              <span class="text-slate-500 text-[11px]">Render mã QR động chứa đúng số tiền và nội dung chuyển khoản. Webhook ngân hàng khớp tiền trong 3 giây.</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <strong class="text-pink-700 block font-bold">2. Ví MoMo</strong>
+              <span class="text-slate-500 text-[11px]">Hỗ trợ quét QR trên máy tính hoặc App-to-App deeplink tự động bật ứng dụng MoMo trên điện thoại.</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <strong class="text-sky-700 block font-bold">3. Ví ZaloPay</strong>
+              <span class="text-slate-500 text-[11px]">Thanh toán nhanh trong hệ sinh thái Zalo hoặc quét mã thanh toán bằng app ngân hàng hỗ trợ.</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <strong class="text-slate-800 block font-bold">4. Thẻ Quốc Tế (Visa)</strong>
+              <span class="text-slate-500 text-[11px]">Cổng bảo mật OnePay/VNPAY chuẩn 3D-Secure quốc tế, dành cho học viên kiều bào nước ngoài.</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <strong class="text-emerald-700 block font-bold">5. Chuyển Khoản Trực Tiếp</strong>
+              <span class="text-slate-500 text-[11px]">Hiển thị tài khoản Techcombank/Vietcombank chính thức của Viện kèm hướng dẫn ghi nội dung cú pháp.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 4: LUỒNG PHÒNG HỌC, XEM VIDEO BÀI GIẢNG & GIAO BỘ DỤNG CỤ THỰC HÀNH -->
+    <!-- ========================================================================================== -->
+    <div id="flow-classroom-drm" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 4: TRẢI NGHIỆM ĐÀO TẠO TRỰC TUYẾN</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Không Gian Phòng Học, Video Player Bảo Mật DRM & Cung Ứng Bộ Dụng Cụ Vật Lý</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-blue-50 text-blue-700 px-3 py-1 rounded-lg border border-blue-200 font-bold">CORE EXPERIENCE</span>
+      </div>
+
+      <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-6 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 1: KHỞI TẠO</span>
+            <strong class="text-slate-900 block font-bold">Tải Bài Giảng Mã Hóa</strong>
+            <p class="text-slate-500 text-[11px]">Kiểm tra quyền ghi danh. Tải luồng video HLS mã hóa AES-128 chống tải lậu bằng extension IDM/coccoc.</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 2: BẢO MẬT</span>
+            <strong class="text-slate-900 block font-bold">Kích Hoạt Watermark Động</strong>
+            <p class="text-slate-500 text-[11px]">Animation tự động thay đổi tọa độ sau mỗi 24 giây với thông tin học viên (<code>HV-88392 • Họ tên • SĐT</code>).</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 3: TIẾN TRÌNH</span>
+            <strong class="text-slate-900 block font-bold">Heartbeat Ghi Nhận Điểm</strong>
+            <p class="text-slate-500 text-[11px]">Trình duyệt gửi ping định kỳ mỗi 10 giây. Khi xem đạt &gt;= 80% thời lượng ➔ Tự động đánh dấu hoàn thành bài.</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 4: VẬT TƯ</span>
+            <strong class="text-slate-900 block font-bold">Giao Bộ Dụng Cụ Vật Lý</strong>
+            <p class="text-slate-500 text-[11px]">Thu thập địa chỉ giao Thước Lập Cực Đại Nam, Sổ tay Đại Đạo Chí Giản, Bút 3 màu ➔ Đẩy vận đơn chuyển phát nhanh.</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-white rounded-xl border border-blue-200 flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <strong class="text-blue-900 block font-bold text-xs">Cơ chế Kiểm Soát Học Tuần Tự (Linear Course Progression):</strong>
+            <p class="text-slate-600 text-[11px]">
+              Tùy cấu hình khóa học: Học viên bắt buộc phải hoàn thành bài học trước mới được mở bài tiếp theo, nhằm đảm bảo nắm vững nguyên lý gốc (Tiên Thiên Bát Quái ➔ Hậu Thiên Bát Quái ➔ Phân Cung Điểm Hướng).
+            </p>
+          </div>
+          <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-lg shrink-0">ÁP DỤNG KHÓA CỔ HỌC I</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 5: LUỒNG ĐỘNG CƠ KHẢO THÍ & BÀI THI SÁT HẠCH 8 DẠNG CÂU HỎI -->
+    <!-- ========================================================================================== -->
+    <div id="flow-exam-engine" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 5: ĐỘNG CƠ KHẢO THÍ PHONG THỦY</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Vòng Đời Đề Thi Sát Hạch, Đếm Ngược Thời Gian Thực & 8 Dạng Câu Hỏi Phong Thủy</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: EXAM ENGINE</span>
+      </div>
+
+      <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-6 text-xs">
+        <!-- 4 Step Progression -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 1: ĐIỀU KIỆN</span>
+            <strong class="text-slate-900 block font-bold">Kiểm Tra Điều Kiện Thi</strong>
+            <p class="text-slate-500 text-[11px]">Học viên phải hoàn thành tối thiểu 80% số bài học của khóa mới được mở nút "BẮT ĐẦU LÀM BÀI THI".</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 2: TẠO ĐỀ</span>
+            <strong class="text-slate-900 block font-bold">Bốc Đề Thi Ngẫu Nhiên</strong>
+            <p class="text-slate-500 text-[11px]">Server random 30 câu hỏi từ ngân hàng đề theo ma trận 4 mức độ tư duy (Nhận biết, Thông hiểu, Vận dụng, Nâng cao).</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 3: THI ĐẤU</span>
+            <strong class="text-slate-900 block font-bold">Làm Bài Trong 30:00</strong>
+            <p class="text-slate-500 text-[11px]">Đồng hồ đếm ngược chạy client/server. Tự động lưu bài làm mỗi 15 giây. Cảnh báo gian lận nếu chuyển tab quá 3 lần.</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <span class="text-[10px] font-bold text-blue-600">BƯỚC 4: NỘP BÀI</span>
+            <strong class="text-slate-900 block font-bold">Chấm Điểm & Phân Nhánh</strong>
+            <p class="text-slate-500 text-[11px]">Bấm Nộp bài hoặc tự động thu bài khi hết giờ. Engine tính điểm trắc nghiệm tức thì, chuyển tiếp luồng kết quả.</p>
+          </div>
+        </div>
+
+        <!-- 8 Question Types Supported -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-3">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">8 Dạng Câu Hỏi Khảo Thí Được Thiết Kế Chuyên Biệt Cho Phong Thủy Đại Nam:</span>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-[11px]">
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">1. Trắc nghiệm 1 đáp án</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">2. Trắc nghiệm nhiều đáp án</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">3. Câu hỏi Đúng / Sai</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">4. Nối cặp khái niệm Bát quái</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">5. Kéo thả đồ hình dương trạch</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">6. Điền từ vào câu khẩu quyết</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">7. Đọc hiểu tình huống thế đất</span>
+            <span class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">8. Tự luận phân tích thế sát</span>
+          </div>
+        </div>
+
+        <!-- Branching Evaluation -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-emerald-50 border border-emerald-300 rounded-xl space-y-1.5">
+            <strong class="text-emerald-900 font-bold text-xs flex items-center gap-1.5">
+              <span>✓</span> NHÁNH ĐẠT (Điểm &gt;= 25 / 30):
+            </strong>
+            <p class="text-emerald-800 text-[11px] leading-relaxed">
+              Kích hoạt ngay luồng cấp Chứng Chỉ Điện Tử có mã QR, cộng thưởng +100 Điểm XheroXu vào ví, cập nhật điểm số lên Bảng Vàng vinh danh và tích lũy điều kiện thăng cấp danh vị.
+            </p>
+          </div>
+          <div class="p-4 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5">
+            <strong class="text-amber-900 font-bold text-xs flex items-center gap-1.5">
+              <span>!</span> NHÁNH CHƯA ĐẠT (Điểm &lt; 25 / 30):
+            </strong>
+            <p class="text-amber-800 text-[11px] leading-relaxed">
+              Hiển thị bảng giải thích chi tiết các câu sai để học viên rút kinh nghiệm. Ghi nhận 1 lượt thi (tối đa 3 lượt thi/tháng). Khóa nút thi trong 24 giờ để học viên ôn tập lại bài giảng trước khi mở luồng Thi lại (Retake).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 6: LUỒNG CẤP CHỨNG CHỈ ĐIỆN TỬ QR & VINH DANH BẢNG VÀNG PODIUM -->
+    <!-- ========================================================================================== -->
+    <div id="flow-cert-podium" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 6: CÔNG NHẬN HỌC THUẬT & VINH DANH</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Quy Trình Cấp Chứng Chỉ Điện Tử Mã Hóa QR & Xếp Hạng Bảng Vàng Podium Top 1-2-3</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: CERTIFICATE & PODIUM</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+        <!-- Certificate Issuance Subflow -->
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+            <strong class="text-slate-900 text-sm font-bold">Cấp Chứng Chỉ Điện Tử (QR Verified)</strong>
+            <span class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded">CHỨNG CHỈ CHÍNH HÃNG</span>
+          </div>
+          <ol class="space-y-3 font-mono text-[11px]">
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">1. Sinh Mã Định Danh:</span> Cấp mã chứng chỉ duy nhất toàn hệ thống (VD: <code>PTDN-CERT-2026-88392</code>).
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">2. Tạo Dynamic QR Code:</span> Mã QR chứa URL xác minh công khai dẫn về: <code>daotao.phongthuydainam.vn/verify-cert?id=...</code>
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">3. Render PDF Bản In:</span> File PDF chất lượng cao chứa dấu mộc đỏ của Viện Phong Thủy Khoa Học Toàn Cầu và chữ ký của ThS. Nguyễn Trọng Mạnh.
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">4. Tra Cứu Toàn Dân:</span> Bất kỳ nhà tuyển dụng hay khách hàng nào quét mã QR đều kiểm tra được tính hợp lệ tức thì.
+            </li>
+          </ol>
+        </div>
+
+        <!-- Leaderboard Podium Subflow -->
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+            <strong class="text-slate-900 text-sm font-bold">Vinh Danh Bảng Vàng (Podium Ranking)</strong>
+            <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">LEADERBOARD ENGINE</span>
+          </div>
+          <ol class="space-y-3 font-mono text-[11px]">
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">1. Thuật Toán Xếp Hạng:</span> Ưu tiên 1: Điểm thi cao nhất ➔ Ưu tiên 2: Thời gian nộp bài sớm nhất ➔ Ưu tiên 3: Thời gian làm bài ngắn nhất.
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">2. Tôn Vinh Podium:</span> Trao danh hiệu Top 1 (Quán Quân Cúp Vàng), Top 2 (Á Quân Bạc), Top 3 (Quý Quân Đồng) trên trang chủ.
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">3. Bộ Lọc Thời Gian:</span> Học viên có thể xem Bảng vàng Toàn khóa, Bảng vàng Tháng hiện tại hoặc Bảng vàng Tuần này.
+            </li>
+            <li class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1">
+              <span class="text-blue-600 font-bold">4. Thưởng Danh Dự:</span> Top 3 định kỳ mỗi quý được tặng quà tặng phong thủy cao cấp và voucher học các lớp chuyên sâu.
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 7: LUỒNG GAMIFICATION, REFERRAL NHẬN XU & THĂNG CẤP 4 BẬC DANH VỊ -->
+    <!-- ========================================================================================== -->
+    <div id="flow-gamification-rank" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 7: GAMIFICATION & PHÁT TRIỂN SỰ NGHIỆP</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Vòng Xoay Tích Điểm XheroXu, Giới Thiệu Khóa Học & Lộ Trình Thăng 4 Cấp Bậc Danh Vị</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: GAMIFICATION & PROMOTION</span>
+      </div>
+
+      <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-6 text-xs">
+        <!-- 3 Pillars of Gamification -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <strong class="text-blue-700 font-bold text-xs">A. TÍCH LŨY XHEROXU</strong>
+              <span class="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">+XU</span>
+            </div>
+            <ul class="space-y-1 text-slate-600 text-[11px]">
+              <li>• Điểm danh mỗi ngày: <strong>+5 Xu</strong></li>
+              <li>• Hoàn thành mỗi bài học: <strong>+10 Xu</strong></li>
+              <li>• Thi đỗ sát hạch: <strong>+100 Xu</strong></li>
+              <li>• Chia sẻ Referral thành công: <strong>+200 Xu</strong></li>
+            </ul>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <strong class="text-purple-700 font-bold text-xs">B. TIÊU XU & ĐỔI QUÀ</strong>
+              <span class="text-[10px] font-mono bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-bold">-XU</span>
+            </div>
+            <ul class="space-y-1 text-slate-600 text-[11px]">
+              <li>• Khấu trừ tiền mua khóa học mới (1 Xu = 1 VNĐ, tối đa 30%).</li>
+              <li>• Đổi mã Voucher giảm giá 50k, 100k, 200k.</li>
+              <li>• Đổi vật phẩm phong thủy vật lý: Thước lập cực, La bàn, Sổ tay.</li>
+            </ul>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <strong class="text-emerald-700 font-bold text-xs">C. CHIA SẺ REFERRAL</strong>
+              <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-bold">AFFILIATE</span>
+            </div>
+            <ul class="space-y-1 text-slate-600 text-[11px]">
+              <li>• Mỗi học viên có 01 liên kết mời bạn bè riêng biệt.</li>
+              <li>• Người được mời nhận Voucher giảm 10% khi đăng ký.</li>
+              <li>• Người giới thiệu nhận hoa hồng XheroXu cộng thẳng vào ví.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4 Rank Titles Career Path -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Lộ Trình Thăng 4 Cấp Bậc Danh Vị Học Thuật:</span>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-slate-600">
+              <span class="text-[10px] font-bold text-slate-400 block font-mono">BẬC 1</span>
+              <strong class="text-slate-900 block font-bold">Khách Hàng Thân Thiết</strong>
+              <p class="text-[11px] text-slate-500">Mới tạo tài khoản, chưa hoàn thành khóa học chính tông nào.</p>
+            </div>
+            <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-200 space-y-1 text-blue-900">
+              <span class="text-[10px] font-bold text-blue-600 block font-mono">BẬC 2</span>
+              <strong class="text-blue-900 block font-bold">Trợ Lý Phong Thủy</strong>
+              <p class="text-[11px] text-blue-700">Đã hoàn thành 01 khóa học nền tảng (Đại Đạo Chí Giản I) và thi đỗ sát hạch.</p>
+            </div>
+            <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-1 text-indigo-900">
+              <span class="text-[10px] font-bold text-indigo-600 block font-mono">BẬC 3</span>
+              <strong class="text-indigo-900 block font-bold">Chuyên Viên Phong Thủy</strong>
+              <p class="text-[11px] text-indigo-700">Đã hoàn thành 03 khóa chuyên sâu và có thực hành thẩm định đồ hình thực địa.</p>
+            </div>
+            <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-300 space-y-1 text-amber-900">
+              <span class="text-[10px] font-bold text-amber-700 block font-mono">BẬC 4: CAO NHẤT</span>
+              <strong class="text-amber-900 block font-bold">Thầy Phong Thủy</strong>
+              <p class="text-[11px] text-amber-800">Hoàn thành toàn diện lộ trình, bảo vệ luận văn đồ hình trước Hội Đồng Khoa Học Viện.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================================== -->
+    <!-- SƠ ĐỒ 8: LUỒNG QUẢN TRỊ ADMIN, GIẢNG VIÊN & VẬN HÀNH HỆ THỐNG (CMS BACK-OFFICE) -->
+    <!-- ========================================================================================== -->
+    <div id="flow-admin-cms" class="card-clean rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">SƠ ĐỒ 8: VẬN HÀNH & BẢO TRÌ NỀN TẢNG</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Quy Trình Quản Trị Hệ Thống Dành Cho Ban Quản Trị, Chuyên Môn & Kế Toán</h2>
+        </div>
+        <span class="text-[11px] font-mono bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">MODULE: ADMIN BACK-OFFICE</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-mono">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <span class="text-blue-600 font-bold block text-sm">1. CMS Bài Giảng</span>
+          <p class="text-slate-500 text-[11px]">Upload video bài học, tự động encode định dạng HLS/DASH, biên soạn cấu trúc chương mục, gán bài học thử.</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <span class="text-blue-600 font-bold block text-sm">2. Khảo Thí & Chấm Thi</span>
+          <p class="text-slate-500 text-[11px]">Soạn thảo ngân hàng 8 dạng câu hỏi, cấu hình ma trận độ khó đề thi, phân công giảng viên chấm bài tự luận.</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <span class="text-blue-600 font-bold block text-sm">3. Kiểm Soát DRM</span>
+          <p class="text-slate-500 text-[11px]">Xem danh sách các phiên đăng nhập bị chặn do vi phạm vượt ngưỡng 3 thiết bị, hỗ trợ mở khóa tài khoản theo yêu cầu.</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <span class="text-blue-600 font-bold block text-sm">4. Đối Soát Doanh Thu</span>
+          <p class="text-slate-500 text-[11px]">Theo dõi lịch sử giao dịch 5 cổng thanh toán, đối soát sao kê ngân hàng tự động, xuất hóa đơn điện tử cho học viên.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================================== -->
+  <!-- TAB 3: MÔ PHỎNG GIAO DIỆN TƯƠNG TÁC (UI/UX SIMULATOR) -->
+  <!-- ========================================================================================== -->
+  <div id="tab-content-sim" class="hidden flex-1 w-full max-w-[1650px] mx-auto px-4 md:px-8 py-8 space-y-8" style="display: none;">
+
+    <!-- PRIORITY #1 BANNER: VIDEO LEARNING ROOM -->
+    <div class="bg-gradient-to-r from-blue-50 via-indigo-50/40 to-slate-50 border border-blue-200 rounded-2xl p-5 md:p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md shadow-blue-500/20">
+          ▶
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-blue-700 uppercase tracking-widest">PHÂN HỆ TRỌNG TÂM CỐT LÕI</span>
+            <span class="text-[10px] font-extrabold bg-blue-600 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">ƯU TIÊN SỐ 1</span>
+          </div>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-1">Không Gian Học Tập & Trình Phát Video Bài Giảng Tương Tác (LMS v2.0)</h2>
+          <p class="text-xs text-slate-600 max-w-4xl mt-0.5">
+            Phòng học trực tuyến chuẩn hóa với: Trình phát video chất lượng cao (DRM Watermark động theo thời gian thực chống quay lén), Mục lục 60 bài học có trạng thái đã học / đang học, Chế độ mở rộng Theater Mode, Hệ thống ghi chú & Bộ dụng cụ thực hành Phong Thủy Đại Nam.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-white px-4 py-2.5 rounded-xl border border-blue-200 shadow-sm text-xs font-bold text-blue-700">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Phòng Học Sẵn Sàng (Live Player)</span>
+      </div>
+    </div>
+
+    <!-- SIMULATOR CONTROL TOOLBAR -->
+    <div class="card-clean rounded-2xl p-4 md:p-6 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h3 class="text-base font-bold text-slate-900">BỘ ĐIỀU HƯỚNG MÔ PHỎNG UI/UX TƯƠNG TÁC</h3>
+        <p class="text-xs text-slate-500">Chuyển đổi giữa các phân hệ: Video học bài (Mặc định) • Thi trắc nghiệm • Danh mục • Thanh toán • Bảng vàng</p>
+      </div>
+
+      <!-- SIMULATOR MODULE SWITCHER -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="switchSimModule('learn')" id="sim-btn-learn"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm transition-all flex items-center gap-1.5">
+          <span>1. Không Gian Học & Video Bài Giảng</span>
+        </button>
+        <button onclick="switchSimModule('exam')" id="sim-btn-exam"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 transition-all">
+          2. Động Cơ Khảo Thí & Thi Thử
+        </button>
+        <button onclick="switchSimModule('catalog')" id="sim-btn-catalog"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 transition-all">
+          3. Danh Mục Khóa Học & Roadmap
+        </button>
+        <button onclick="switchSimModule('checkout')" id="sim-btn-checkout"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 transition-all">
+          4. Thanh Toán 5 Cổng & Xu
+        </button>
+        <button onclick="switchSimModule('cert')" id="sim-btn-cert"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 transition-all">
+          5. Chứng Chỉ & BXH Podium
+        </button>
+        <button onclick="switchSimModule('profile')" id="sim-btn-profile"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 transition-all">
+          6. Hồ Sơ & Thăng Cấp Danh Vị
+        </button>
+        <button onclick="testDrmLockPopup()"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-all">
+          Test Cảnh Báo DRM (3 Thiết Bị)
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================================================================================== -->
+    <!-- MODULE 1 (DEFAULT ACTIVE): INTERACTIVE LEARNING & VIDEO PLAYER -->
+    <!-- ==================================================================================== -->
+    <div id="sim-module-learn" class="space-y-6">
+
+      <!-- COURSE HEADER & PROGRESS BAR -->
+      <div class="card-clean rounded-2xl p-5 md:p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded uppercase">KHÓA HỌC CHÍNH TÔNG</span>
+              <span class="text-xs text-slate-500 font-medium">Giảng viên: <strong>ThS. Nguyễn Trọng Mạnh</strong></span>
+            </div>
+            <h2 class="text-xl md:text-2xl font-extrabold text-slate-900">ĐẠI ĐẠO CHÍ GIẢN - PHONG THỦY CỔ HỌC I</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="toggleTheaterMode()" id="btn-theater" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-lg border border-slate-200 flex items-center gap-1.5 transition-all">
+              <span id="theater-icon">⤢</span>
+              <span id="theater-text">Mở rộng Video</span>
+            </button>
+            <a href="#spec-exam-engine" onclick="switchSimModule('exam')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm">
+              LÀM BÀI THI CUỐI KHÓA
+            </a>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5 w-full md:w-auto">
+            <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs">CP</span>
+            <span class="text-slate-700">Tiến trình học tập: <strong class="text-slate-900" id="progress-text">Đã hoàn thành 12 / 60 bài học (20%)</strong></span>
+          </div>
+          <div class="w-full md:w-72 h-2.5 bg-slate-200 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-600 rounded-full" style="width: 20%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN LEARNING PLAYER AREA (GRID: SIDEBAR CURRICULUM + VIDEO CONTAINER) -->
+      <div id="learning-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- LEFT SIDEBAR: CURRICULUM TREE (4 COLS) -->
+        <div id="curriculum-sidebar" class="lg:col-span-4 card-clean rounded-2xl p-4 md:p-5 space-y-4 max-h-[640px] overflow-y-auto">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="text-sm font-bold text-slate-900">MỤC LỤC BÀI GIẢNG</h3>
+            <span class="text-[11px] text-slate-500 font-mono">10 Chương • 60 Bài</span>
+          </div>
+
+          <!-- Section 1 -->
+          <div class="space-y-1.5">
+            <div class="bg-slate-100 px-3 py-2 rounded-lg font-bold text-xs text-slate-800 flex items-center justify-between">
+              <span>CHƯƠNG 1: SỨ MỆNH HUYỀN HỌC</span>
+              <span class="text-[10px] text-slate-500">30:30</span>
+            </div>
+            <div class="space-y-1 pl-1">
+              <!-- Lesson 1 -->
+              <button onclick="selectLesson(1, 'Bài 1: Giá trị trao đi và sứ mệnh của Huyền học đệ tử', '27:00')"
+                class="lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-transparent hover:bg-slate-50 text-slate-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-[10px]">✓</span>
+                  <span class="font-medium line-clamp-1">Bài 1: Giá trị trao đi và sứ mệnh</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">27:00</span>
+              </button>
+              <!-- Lesson 2 (Active) -->
+              <button onclick="selectLesson(2, 'Bài 2: Đạo của tự nhiên: Thiên - Địa - Nhân tương thông', '03:30')"
+                class="lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-blue-200 bg-blue-50/80 text-blue-900 font-bold">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[10px]">▶</span>
+                  <span class="line-clamp-1">Bài 2: Đạo tự nhiên: Thiên - Nhân - Địa</span>
+                </div>
+                <span class="text-[10px] text-blue-600 font-mono">03:30</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 2 -->
+          <div class="space-y-1.5">
+            <div class="bg-slate-100 px-3 py-2 rounded-lg font-bold text-xs text-slate-800 flex items-center justify-between">
+              <span>CHƯƠNG 2: NGUYÊN LÝ BÁT QUÁI</span>
+              <span class="text-[10px] text-slate-500">45:00</span>
+            </div>
+            <div class="space-y-1 pl-1">
+              <!-- Lesson 3 -->
+              <button onclick="selectLesson(3, 'Bài 3: Khái niệm & Nguồn gốc Tiên Thiên Bát Quái', '25:00')"
+                class="lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-transparent hover:bg-slate-50 text-slate-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-[10px]">3</span>
+                  <span class="font-medium line-clamp-1">Bài 3: Khái niệm Tiên Thiên Bát Quái</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">25:00</span>
+              </button>
+              <!-- Lesson 4 -->
+              <button onclick="selectLesson(4, 'Bài 4: Hậu Thiên Bát Quái & Ứng Dụng Dương Trạch', '20:00')"
+                class="lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-transparent hover:bg-slate-50 text-slate-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-[10px]">4</span>
+                  <span class="font-medium line-clamp-1">Bài 4: Hậu Thiên Bát Quái thực hành</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">20:00</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 3 -->
+          <div class="space-y-1.5">
+            <div class="bg-slate-100 px-3 py-2 rounded-lg font-bold text-xs text-slate-800 flex items-center justify-between">
+              <span>CHƯƠNG 3: PHÂN CUNG ĐIỂM HƯỚNG</span>
+              <span class="text-[10px] text-slate-500">1:15:00</span>
+            </div>
+            <div class="space-y-1 pl-1">
+              <button onclick="selectLesson(5, 'Bài 5: Hướng dẫn sử dụng Thước Lập Cực Đại Nam', '35:00')"
+                class="lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-transparent hover:bg-slate-50 text-slate-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-[10px]">5</span>
+                  <span class="font-medium line-clamp-1">Bài 5: Sử dụng Thước Lập Cực</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">35:00</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: VIDEO PLAYER & INTERACTION CONTAINER (8 COLS) -->
+        <div id="video-main-column" class="lg:col-span-8 space-y-6">
+
+          <!-- VIDEO PLAYER FRAME -->
+          <div class="card-clean rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 relative shadow-lg">
+
+            <!-- DYNAMIC WATERMARK (ANTI-SCREEN RECORDING) -->
+            <div id="video-watermark" class="dynamic-watermark z-20 text-[11px] font-mono font-bold text-white/30 tracking-wider bg-black/20 px-2 py-0.5 rounded">
+              HV-88392 • NGUYEN VAN A • 0909123456
+            </div>
+
+            <!-- SIMULATED VIDEO SCREEN -->
+            <div onclick="togglePlayPause()" class="cursor-pointer group relative w-full aspect-video bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex flex-col items-center justify-center text-center p-6 select-none overflow-hidden">
+
+              <!-- Central Play Display -->
+              <div id="video-main-play-btn" class="w-20 h-20 rounded-full bg-blue-600/90 text-white flex items-center justify-center text-3xl shadow-xl group-hover:scale-110 transition-transform">
+                <span id="video-main-play-icon">▶</span>
+              </div>
+
+              <!-- Lesson Title in Player -->
+              <div class="mt-4 z-10 space-y-1.5">
+                <div class="flex items-center justify-center gap-2">
+                  <span class="text-[11px] font-bold text-blue-300 uppercase tracking-widest block font-mono">VIDEO BÀI HỌC CHÍNH THỨC</span>
+                  <span id="video-status-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded font-mono">TẠM DỪNG</span>
+                </div>
+                <h3 id="current-lesson-title" class="text-base md:text-lg font-bold text-white max-w-xl">
+                  Bài 2: Đạo của tự nhiên: Thiên - Địa - Nhân tương thông
+                </h3>
+              </div>
+
+              <!-- Watermark notice -->
+              <div class="absolute bottom-4 left-4 z-10 text-[10px] text-slate-400 font-mono flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Bảo Mật DRM: Viện Phong Thủy Khoa Học Toàn Cầu</span>
+              </div>
+            </div>
+
+            <!-- VIDEO CONTROLS BAR -->
+            <div class="bg-slate-950 px-4 py-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <div class="flex items-center gap-3">
+                <button onclick="togglePlayPause()" id="btn-ctrl-play" class="text-white hover:text-blue-400 font-bold text-sm transition-colors">▶</button>
+                <span class="font-mono text-[11px] text-slate-300"><span id="video-current-time">01:45</span> / <span id="current-lesson-duration">03:30</span></span>
+              </div>
+              <div onclick="seekVideo(event)" class="flex-1 max-w-md mx-4 h-1.5 bg-slate-800 rounded-full overflow-hidden cursor-pointer">
+                <div id="video-player-progress" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 50%;"></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <button class="hover:text-white font-mono text-[11px]">1.0x</button>
+                <button onclick="toggleTheaterMode()" class="hover:text-white font-bold" title="Chế độ mở rộng">⤢</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- LESSON NAVIGATION & ACTION BAR -->
+          <div class="card-clean rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold">
+            <div class="flex items-center gap-2">
+              <button onclick="prevLesson()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition-all flex items-center gap-1">
+                ← Bài trước
+              </button>
+              <span class="text-slate-400 font-mono bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                Bài: <strong id="lesson-index-text" class="text-slate-800">02 / 10</strong>
+              </span>
+              <button onclick="nextLesson()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition-all flex items-center gap-1">
+                Bài sau →
+              </button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="markLessonComplete()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+                <span>✓</span>
+                <span>Đánh dấu Hoàn thành</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TABBED LESSON DETAILS (TỔNG QUAN / TÀI LIỆU / HỎI ĐÁP / ĐÁNH GIÁ) -->
+          <div class="card-clean rounded-2xl p-6 space-y-5">
+            <!-- Tabs Header -->
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-3 text-xs font-bold">
+              <button onclick="switchLessonSubTab('desc')" id="subtab-btn-desc" class="px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700">
+                Tổng quan & Mục tiêu
+              </button>
+              <button onclick="switchLessonSubTab('kits')" id="subtab-btn-kits" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100">
+                Bộ Dụng Cụ Thực Hành
+              </button>
+              <button onclick="switchLessonSubTab('qa')" id="subtab-btn-qa" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100">
+                Hỏi Đáp & Thảo Luận (3)
+              </button>
+              <button onclick="switchLessonSubTab('review')" id="subtab-btn-review" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100">
+                Đánh Giá Khóa Học (5.0★)
+              </button>
+            </div>
+
+            <!-- Tab Content 1: Overview -->
+            <div id="subtab-content-desc" class="space-y-3 text-xs leading-relaxed text-slate-600">
+              <h4 class="text-sm font-bold text-slate-900">Nội Dung Trọng Tâm Bài Học:</h4>
+              <p>
+                Bài học này trang bị cho học viên thế giới quan nền tảng của Phong Thủy Cổ Học Chính Tông: Quy luật tương tác đa chiều giữa Thiên Khí (thời vận, tinh tú), Địa Khí (thế đất, dòng nước, phương hướng) và Nhân Khí (tâm thức, hành vi và cung mệnh con người).
+              </p>
+              <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200 text-blue-900 font-medium">
+                Khẩu quyết ghi nhớ: <em>"Nhất Mệnh, Nhị Vận, Tam Phong Thủy, Tứ Tích Âm Đức, Ngũ Độc Thư."</em>
+              </div>
+            </div>
+
+            <!-- Tab Content 2: Study Kits -->
+            <div id="subtab-content-kits" class="hidden space-y-4 text-xs">
+              <h4 class="text-sm font-bold text-slate-900">Bộ Dụng Cụ Cần Thiết Cho Bài Học Này:</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <strong class="text-slate-900 block font-bold">Thước Lập Cực Đại Nam</strong>
+                  <span class="text-slate-500">Phân 8 cung 24 sơn hướng chính xác.</span>
+                  <span class="text-blue-600 font-bold block pt-1">Đã có trong giáo trình</span>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <strong class="text-slate-900 block font-bold">Sổ Tay Đại Đạo Chí Giản</strong>
+                  <span class="text-slate-500">Cẩm nang khẩu quyết tra cứu nhanh.</span>
+                  <span class="text-blue-600 font-bold block pt-1">Tặng kèm khóa học</span>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <strong class="text-slate-900 block font-bold">Bút Ba Màu Định Hướng</strong>
+                  <span class="text-slate-500">Chấm điểm các phương Cát - Hung.</span>
+                  <span class="text-emerald-600 font-bold block pt-1">Đã chuẩn bị</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content 3: QA Discussion -->
+            <div id="subtab-content-qa" class="hidden space-y-4 text-xs">
+              <div class="space-y-3">
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <strong class="text-slate-900 font-semibold">Nguyễn Văn Anh • Học viên</strong>
+                    <span class="text-slate-400 text-[11px]">18/06/2026</span>
+                  </div>
+                  <p class="text-slate-600">Thầy cho em hỏi, nhà hướng Tây Bắc nhìn ra ngã ba đường thì trong bài này áp dụng khẩu quyết gì để hóa giải sát khí ạ?</p>
+                  <!-- Official Reply -->
+                  <div class="bg-white p-3 rounded-lg border-l-2 border-blue-600 space-y-1 mt-2">
+                    <strong class="text-blue-700 font-bold block">Ban Chuyên Môn Phong Thủy Đại Nam:</strong>
+                    <p class="text-slate-600">Chào bạn, trường hợp này thuộc về Thương Sát. Bạn cần áp dụng phương pháp bình phong chắn khí hoặc đặt đôi Kỳ Lân đá xoay ra hướng sát như đã hướng dẫn ở phút thứ 18:20 của bài học nhé.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content 4: Review -->
+            <div id="subtab-content-review" class="hidden space-y-3 text-xs">
+              <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <span class="text-2xl font-bold text-blue-600">5.0</span>
+                <span class="text-slate-600">Được đánh giá tuyệt đối bởi 29 học viên xuất sắc của khóa học.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 2: EXAM SIMULATOR -->
+    <div id="sim-module-exam" class="hidden space-y-6">
+      <div class="max-w-4xl mx-auto card-clean rounded-2xl p-6 md:p-10 shadow-sm space-y-6">
+        <!-- Exam Header -->
+        <div class="border-b border-slate-200 pb-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">BÀI KIỂM TRA ĐỊNH KỲ • KỲ THI CHÍNH TÔNG</span>
+            <h2 class="text-lg md:text-xl font-bold text-slate-900 mt-0.5">ĐỀ 1: ĐẠI ĐẠO CHÍ GIẢN - PHONG THỦY CỔ HỌC I</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="bg-slate-100 text-slate-800 px-4 py-1.5 rounded-lg font-mono font-bold text-sm flex items-center gap-1.5 border border-slate-200">
+              <span class="text-slate-500">Thời gian:</span>
+              <span id="exam-timer" class="text-blue-600 font-bold">29:45</span>
+            </div>
+            <button onclick="submitExamSim()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2 rounded-lg shadow-sm transition-all uppercase tracking-wider">
+              NỘP BÀI
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Container -->
+        <div id="exam-question-box" class="space-y-6 min-h-[280px]">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md">CÂU HỎI 04 / 10 • TRẮC NGHIỆM</span>
+              <span class="text-xs text-slate-500 font-semibold">Chọn 1 đáp án chính xác</span>
+            </div>
+            <h3 class="text-base md:text-lg font-bold text-slate-900 leading-snug">
+              Trong lý luận Bát Trạch Minh Cảnh của Phong Thủy Đại Nam, hướng nhà nào sau đây thuộc về cung vị Diên Niên (Phúc Đức cát lợi) của gia chủ tuổi Quý Hợi (sinh năm 1983)?
+            </h3>
+
+            <!-- Options -->
+            <div class="space-y-2.5 pt-2">
+              <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all">
+                <input type="radio" name="exam_q1" value="A" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                <span class="text-xs md:text-sm text-slate-800">A. Hướng Tây Bắc (Cung Càn - Thuộc Tây Tứ Trạch)</span>
+              </label>
+              <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all">
+                <input type="radio" name="exam_q1" value="B" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                <span class="text-xs md:text-sm text-slate-800">B. Hướng Tây Nam (Cung Khôn - Thuộc Tây Tứ Trạch)</span>
+              </label>
+              <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all">
+                <input type="radio" name="exam_q1" value="C" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                <span class="text-xs md:text-sm text-slate-800">C. Hướng Đông Bắc (Cung Cấn - Thuộc Tây Tứ Trạch)</span>
+              </label>
+              <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all">
+                <input type="radio" name="exam_q1" value="D" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                <span class="text-xs md:text-sm text-slate-800">D. Hướng Tây (Cung Đoài - Diên Niên Khí Thuần)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Navigation Footer -->
+        <div class="border-t border-slate-200 pt-4 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-600">
+          <button class="hover:text-blue-600 flex items-center gap-1">
+            ← Câu trước
+          </button>
+          <span class="font-mono bg-slate-100 px-3 py-1 rounded text-slate-700">04 / 10</span>
+          <button class="hover:text-blue-600 flex items-center gap-1">
+            Câu sau →
+          </button>
+        </div>
+      </div>
+
+      <!-- RESULT MODAL SIMULATOR -->
+      <div id="exam-result-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white max-w-lg w-full rounded-2xl p-6 md:p-8 text-center space-y-5 border border-slate-200 shadow-xl">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+            ✓
+          </div>
+          <h3 class="text-xl font-bold text-slate-900">BẠN ĐÃ HOÀN THÀNH BÀI THI!</h3>
+          <div class="bg-blue-50 text-blue-900 py-3 px-6 rounded-xl inline-block border border-blue-200">
+            <span class="text-xs block text-slate-500 uppercase font-semibold">ĐIỂM SỐ ĐẠT ĐƯỢC</span>
+            <span class="text-3xl font-extrabold font-mono text-blue-600">27 / 30 ĐIỂM</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Chúc mừng bạn đã hoàn thành xuất sắc bài thi <strong>Đại Đạo Chí Giản - Phong Thủy Cổ Học I</strong>. Hãy tiếp tục học phần tiếp theo để hoàn thành điều kiện nhận Chứng chỉ nhé!
+          </p>
+          <div class="grid grid-cols-3 gap-2 text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700">
+            <div>Số câu: <strong>30 câu</strong></div>
+            <div>Thời gian: <strong>22 phút</strong></div>
+            <div>Kết quả: <strong class="text-emerald-600 font-bold">ĐẠT (PASS)</strong></div>
+          </div>
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <button onclick="closeExamSimModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-lg shadow-sm">
+              XEM LẠI BÀI LÀM
+            </button>
+            <button onclick="closeExamSimModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-5 py-2.5 rounded-lg">
+              VỀ KHÓA HỌC
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 3: CATALOG & ROADMAP -->
+    <div id="sim-module-catalog" class="hidden space-y-6">
+      <div class="card-clean rounded-2xl p-6 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">DANH SÁCH KHÓA HỌC PHONG THỦY</span>
+            <h3 class="text-xl font-bold text-slate-900 mt-0.5">Khám Phá Chương Trình Đào Tạo</h3>
+          </div>
+          <!-- Category Tabs -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+            <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm">Tất cả</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900">Cơ bản</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900">Nâng cao</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900">Chuyên sâu</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900">Doanh nghiệp</button>
+          </div>
+        </div>
+
+        <!-- Course Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Course 1 -->
+          <div class="bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all space-y-3 p-4">
+            <div class="h-44 rounded-lg bg-blue-50 flex items-center justify-center relative overflow-hidden border border-blue-100 text-blue-600 font-bold">
+              [HÌNH ẢNH KHÓA HỌC]
+              <span class="absolute top-2 left-2 text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded uppercase">ONLINE</span>
+              <span class="absolute bottom-2 right-2 text-[10px] bg-white/90 text-slate-700 px-2 py-0.5 rounded font-mono border border-slate-200">1.250 Học viên</span>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900 line-clamp-1">ĐẠI ĐẠO CHÍ GIẢN - PHONG THỦY CỔ HỌC I</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">Trang bị thế giới quan nền tảng, giải mã quy luật Thiên - Địa - Nhân và Bát trạch căn bản.</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div>
+                <span class="text-xs text-slate-400 line-through block">2.400.000đ</span>
+                <span class="text-sm font-bold text-blue-600">480.000đ</span>
+              </div>
+              <button onclick="switchSimModule('learn')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-sm">VÀO HỌC NGAY</button>
+            </div>
+          </div>
+
+          <!-- Course 2 -->
+          <div class="bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all space-y-3 p-4">
+            <div class="h-44 rounded-lg bg-indigo-50 flex items-center justify-center relative overflow-hidden border border-indigo-100 text-indigo-600 font-bold">
+              [HÌNH ẢNH KHÓA HỌC]
+              <span class="absolute top-2 left-2 text-[10px] bg-indigo-600 text-white font-bold px-2 py-0.5 rounded uppercase">TRỰC TIẾP</span>
+              <span class="absolute bottom-2 right-2 text-[10px] bg-white/90 text-slate-700 px-2 py-0.5 rounded font-mono border border-slate-200">350 Học viên</span>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900 line-clamp-1">ĐẾ VƯƠNG CHI HỌC - KỲ MÔN ĐỘN GIÁP A1</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">Khóa đào tạo chuyên sâu về dự đoán thời vận, mưu lược ứng dụng trong quản trị doanh nghiệp.</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div>
+                <span class="text-xs text-slate-400 line-through block">10.000.000đ</span>
+                <span class="text-sm font-bold text-blue-600">7.500.000đ</span>
+              </div>
+              <button class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-sm">ĐĂNG KÝ HỌC</button>
+            </div>
+          </div>
+
+          <!-- Course 3 -->
+          <div class="bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all space-y-3 p-4">
+            <div class="h-44 rounded-lg bg-amber-50 flex items-center justify-center relative overflow-hidden border border-amber-100 text-amber-700 font-bold">
+              [SẮP RA MẮT]
+              <span class="absolute top-2 left-2 text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded uppercase">COUNTDOWN</span>
+              <span class="absolute bottom-2 right-2 text-[10px] bg-white/90 text-slate-700 px-2 py-0.5 rounded font-mono border border-slate-200">02 ngày 24:00</span>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900 line-clamp-1">ÂM TRẠCH CHÂN TRUYỀN - TẦM LONG ĐIỂM HUYỆT</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">Khóa huấn luyện cao cấp thực địa non bộ, thế núi thế sông mang lại phúc trạch muôn đời.</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div>
+                <span class="text-xs text-slate-400 block">Học phí:</span>
+                <span class="text-sm font-bold text-slate-800">Liên hệ Viện</span>
+              </div>
+              <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3.5 py-1.5 rounded-lg">LIÊN HỆ NGAY</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 4: CHECKOUT SIMULATOR -->
+    <div id="sim-module-checkout" class="hidden space-y-6">
+      <div class="card-clean rounded-2xl p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
+        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-3">
+          THÔNG TIN ĐƠN HÀNG & PHƯƠNG THỨC THANH TOÁN
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs">
+          <!-- Buyer info -->
+          <div class="space-y-3">
+            <span class="text-xs font-bold text-slate-900 block">1. THÔNG TIN NGƯỜI MUA</span>
+            <input type="text" value="Nguyễn Văn A" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800" placeholder="Họ và tên">
+            <input type="text" value="0909123456" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800" placeholder="Số điện thoại">
+            <input type="email" value="nguyenvana@gmail.com" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800" placeholder="Email">
+            <input type="text" value="Hải Phòng" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800" placeholder="Tỉnh / Thành phố">
+          </div>
+
+          <!-- Payment methods -->
+          <div class="space-y-3">
+            <span class="text-xs font-bold text-slate-900 block">2. PHƯƠNG THỨC THANH TOÁN</span>
+            <div class="space-y-2">
+              <label class="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100">
+                <input type="radio" name="pay_method" checked class="text-blue-600">
+                <span class="font-medium text-slate-800">Chuyển khoản Ngân hàng tự động (ACB)</span>
+              </label>
+              <label class="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100">
+                <input type="radio" name="pay_method" class="text-blue-600">
+                <span class="font-medium text-slate-800">Ví điện tử MoMo (Quét QR Code)</span>
+              </label>
+              <label class="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100">
+                <input type="radio" name="pay_method" class="text-blue-600">
+                <span class="font-medium text-slate-800">Cổng VNPay (Thẻ ATM / QR Bank)</span>
+              </label>
+            </div>
+
+            <!-- Discount & Xu -->
+            <div class="pt-3 border-t border-slate-200 space-y-2">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="check-use-xu" checked class="w-4 h-4 text-blue-600 rounded">
+                <label for="check-use-xu" class="text-xs text-blue-700 font-semibold">Sử dụng 13.000 XheroXu (-13.000đ)</label>
+              </div>
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+                <div class="flex justify-between text-slate-500"><span>Tạm tính:</span><span>1.810.600đ</span></div>
+                <div class="flex justify-between text-emerald-600"><span>Giảm giá XheroXu:</span><span>-13.000đ</span></div>
+                <div class="flex justify-between text-base font-bold text-slate-900 pt-1 border-t border-slate-200">
+                  <span>Tổng thanh toán:</span><span class="text-blue-600">1.797.600đ</span>
+                </div>
+              </div>
+              <button onclick="testPaymentSuccess()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-lg shadow-sm uppercase">
+                TIẾN HÀNH THANH TOÁN
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 5: CERTIFICATE & PODIUM -->
+    <div id="sim-module-cert" class="hidden space-y-6">
+      <div class="card-clean rounded-2xl p-6 md:p-8 space-y-8">
+        <div class="text-center space-y-1">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">BẢNG VÀNG THÀNH TÍCH</span>
+          <h3 class="text-xl md:text-2xl font-bold text-slate-900">BẢNG XẾP HẠNG HỌC VIÊN XUẤT SẮC</h3>
+        </div>
+
+        <!-- Podium Top 3 -->
+        <div class="flex flex-wrap items-end justify-center gap-4 pt-4 max-w-2xl mx-auto">
+          <!-- Top 2 -->
+          <div class="w-28 md:w-36 bg-slate-50 border border-slate-200 p-3 rounded-t-xl text-center space-y-1 shadow-sm">
+            <span class="text-xs font-bold text-slate-500 block">TOP 2</span>
+            <strong class="text-xs text-slate-900 block">Trần Thu Hà</strong>
+            <span class="text-[10px] text-slate-500 block">28/30 Điểm</span>
+            <div class="h-20 bg-slate-200 rounded mt-2 flex items-center justify-center text-sm font-bold text-slate-700">#2</div>
+          </div>
+
+          <!-- Top 1 -->
+          <div class="w-32 md:w-44 bg-blue-50 border-2 border-blue-500 p-4 rounded-t-2xl text-center space-y-1.5 shadow-md">
+            <span class="text-xs font-bold text-blue-600 block">TOP 1</span>
+            <strong class="text-sm text-blue-900 block font-bold">Nguyễn Văn A</strong>
+            <span class="text-xs text-blue-700 block font-bold">30/30 Điểm</span>
+            <div class="h-28 bg-blue-600 text-white rounded mt-2 flex items-center justify-center text-base font-bold">#1</div>
+          </div>
+
+          <!-- Top 3 -->
+          <div class="w-28 md:w-36 bg-slate-50 border border-slate-200 p-3 rounded-t-xl text-center space-y-1 shadow-sm">
+            <span class="text-xs font-bold text-slate-500 block">TOP 3</span>
+            <strong class="text-xs text-slate-900 block">Lê Quốc Tuấn</strong>
+            <span class="text-[10px] text-slate-500 block">27/30 Điểm</span>
+            <div class="h-16 bg-slate-200 rounded mt-2 flex items-center justify-center text-sm font-bold text-slate-700">#3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 6: PROFILE & RANK -->
+    <div id="sim-module-profile" class="hidden space-y-6">
+      <div class="card-clean rounded-2xl p-6 md:p-8 space-y-6 max-w-3xl mx-auto">
+        <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+          <div class="w-16 h-16 rounded-full bg-blue-100 border-2 border-blue-500 flex items-center justify-center text-blue-700 font-bold text-xl">
+            NA
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Nguyễn Văn A</h3>
+            <span class="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">CẤP 1: HỌC VIÊN</span>
+            <span class="text-xs text-slate-500 block mt-1">Học thêm 02 khóa để thăng hạng <strong>THẦY PHONG THỦY</strong></span>
+          </div>
+        </div>
+
+        <!-- Rank progress bar -->
+        <div class="space-y-1.5 text-xs">
+          <div class="flex justify-between text-slate-600">
+            <span>Tiến độ thăng bậc:</span>
+            <span class="text-blue-600 font-bold">50% (2/4 Khóa hoàn thành)</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+            <div class="h-full bg-blue-600 w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DRM LOCK POPUP (TEST MODAL) -->
+  <div id="drm-lock-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white max-w-md w-full rounded-2xl p-6 md:p-8 border border-red-200 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-xl font-bold">
+        !
+      </div>
+      <h3 class="text-lg font-bold text-red-600">THÔNG BÁO KHÓA TÀI KHOẢN</h3>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Quý khách đã vi phạm chính sách bảo mật của <strong>Phong Thủy Đại Nam</strong> - không được đăng nhập quá <strong>3 thiết bị</strong> đồng thời trên website. Để bảo mật thông tin và bản quyền bài giảng, chúng tôi tạm khóa tài khoản của quý khách.
+      </p>
+      <div class="bg-red-50 p-3 rounded-xl border border-red-200 text-xs text-red-800">
+        Vui lòng liên hệ Hotline: <strong class="text-red-900 font-bold">1900 989 919</strong> để được hỗ trợ mở khóa.
+      </div>
+      <button onclick="closeDrmLockPopup()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-6 py-2 rounded-lg">
+        ĐÃ HIỂU & ĐÓNG
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto bg-white border-t border-slate-200 px-6 py-6 text-center text-xs text-slate-500 space-y-1.5">
+    <p class="font-bold text-slate-800">VIỆN PHONG THỦY KHOA HỌC TOÀN CẦU - PHONG THỦY ĐẠI NAM</p>
+    <p>Trụ sở chính: Paris 19-15 Vinhomes Imperia, Thượng Lý, Hồng Bàng, Hải Phòng | Hotline: 1900 989 919 - 0788 686 898</p>
+    <p class="text-[11px] text-slate-400">Tài liệu đặc tả phân tích nghiệp vụ LMS Rebuild v2.0 • Thiết kế chuẩn White & Blue Theme • Phụ trách: Nguyễn Quốc Toàn</p>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // 1. Switch Top Document Tabs (Sim / Spec / Flow)
+    function switchDocTab(tabKey) {
+      const tabs = ['sim', 'spec', 'flow'];
+      tabs.forEach(t => {
+        const elContent = document.getElementById(`tab-content-${t}`);
+        const elBtn = document.getElementById(`btn-tab-${t}`);
+        if (t === tabKey) {
+          elContent.classList.remove('hidden');
+          if (t === 'spec') {
+            elContent.style.display = 'flex';
+          } else {
+            elContent.style.display = 'block';
+          }
+          elBtn.className = "px-4 md:px-5 py-2 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5";
+        } else {
+          elContent.classList.add('hidden');
+          elContent.style.display = 'none';
+          elBtn.className = "px-4 md:px-5 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-blue-600 hover:bg-white/60";
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 2. Switch Simulator Sub-modules (Learn / Exam / Catalog / Checkout / Cert / Profile)
+    function switchSimModule(modKey) {
+      const modules = ['learn', 'exam', 'catalog', 'checkout', 'cert', 'profile'];
+      modules.forEach(m => {
+        const elBox = document.getElementById(`sim-module-${m}`);
+        const elBtn = document.getElementById(`sim-btn-${m}`);
+        if (elBox && elBtn) {
+          if (m === modKey) {
+            elBox.classList.remove('hidden');
+            elBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm transition-all";
+          } else {
+            elBox.classList.add('hidden');
+            elBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 transition-all";
+          }
+        }
+      });
+    }
+
+    // 3. Learning Experience Interaction & Live Video Playback Simulation
+    let currentLessonIdx = 2;
+    let isVideoPlaying = false;
+    let videoCurrentSeconds = 105; // 01:45
+    let videoDurationSeconds = 210; // 03:30
+    let videoTimerInterval = null;
+
+    const lessonsList = [
+      { id: 1, title: 'Bài 1: Giá trị trao đi và sứ mệnh của Huyền học đệ tử', duration: '27:00', totalSec: 1620 },
+      { id: 2, title: 'Bài 2: Đạo của tự nhiên: Thiên - Địa - Nhân tương thông', duration: '03:30', totalSec: 210 },
+      { id: 3, title: 'Bài 3: Khái niệm & Nguồn gốc Tiên Thiên Bát Quái', duration: '25:00', totalSec: 1500 },
+      { id: 4, title: 'Bài 4: Hậu Thiên Bát Quái & Ứng Dụng Dương Trạch', duration: '20:00', totalSec: 1200 },
+      { id: 5, title: 'Bài 5: Hướng dẫn sử dụng Thước Lập Cực Đại Nam', duration: '35:00', totalSec: 2100 }
+    ];
+
+    function formatTime(totalSecs) {
+      const m = Math.floor(totalSecs / 60);
+      const s = totalSecs % 60;
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function togglePlayPause() {
+      isVideoPlaying = !isVideoPlaying;
+      const playIcon = document.getElementById('video-main-play-icon');
+      const ctrlPlayIcon = document.getElementById('btn-ctrl-play');
+      const badge = document.getElementById('video-status-badge');
+      const progBar = document.getElementById('video-player-progress');
+
+      if (isVideoPlaying) {
+        if (playIcon) playIcon.textContent = '❚❚';
+        if (ctrlPlayIcon) ctrlPlayIcon.textContent = '❚❚';
+        if (badge) {
+          badge.classList.remove('hidden');
+          badge.textContent = 'ĐANG PHÁT';
+          badge.className = 'text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded font-mono animate-pulse';
+        }
+
+        if (videoTimerInterval) clearInterval(videoTimerInterval);
+        videoTimerInterval = setInterval(() => {
+          if (videoCurrentSeconds < videoDurationSeconds) {
+            videoCurrentSeconds++;
+            const timeEl = document.getElementById('video-current-time');
+            if (timeEl) timeEl.textContent = formatTime(videoCurrentSeconds);
+            const pct = Math.min(100, Math.floor((videoCurrentSeconds / videoDurationSeconds) * 100));
+            if (progBar) progBar.style.width = pct + '%';
+          } else {
+            togglePlayPause(); // finish
+          }
+        }, 1000);
+      } else {
+        if (playIcon) playIcon.textContent = '▶';
+        if (ctrlPlayIcon) ctrlPlayIcon.textContent = '▶';
+        if (badge) {
+          badge.textContent = 'TẠM DỪNG';
+          badge.className = 'text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-mono';
+        }
+        if (videoTimerInterval) clearInterval(videoTimerInterval);
+      }
+    }
+
+    function seekVideo(e) {
+      const bar = e.currentTarget;
+      const rect = bar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      videoCurrentSeconds = Math.floor(pct * videoDurationSeconds);
+      const timeEl = document.getElementById('video-current-time');
+      if (timeEl) timeEl.textContent = formatTime(videoCurrentSeconds);
+      const progBar = document.getElementById('video-player-progress');
+      if (progBar) progBar.style.width = (pct * 100) + '%';
+    }
+
+    function selectLesson(id, title, duration) {
+      currentLessonIdx = id;
+      const found = lessonsList.find(l => l.id === id);
+      videoDurationSeconds = found ? found.totalSec : 210;
+      videoCurrentSeconds = 0;
+
+      const titleEl = document.getElementById('current-lesson-title');
+      if (titleEl) titleEl.textContent = title;
+      const durEl = document.getElementById('current-lesson-duration');
+      if (durEl) durEl.textContent = duration;
+      const idxEl = document.getElementById('lesson-index-text');
+      if (idxEl) idxEl.textContent = `0${id} / 10`;
+
+      const timeEl = document.getElementById('video-current-time');
+      if (timeEl) timeEl.textContent = '00:00';
+      const progBar = document.getElementById('video-player-progress');
+      if (progBar) progBar.style.width = '0%';
+
+      if (!isVideoPlaying) {
+        togglePlayPause();
+      }
+
+      // Update button visual styles
+      const btns = document.querySelectorAll('.lesson-btn');
+      btns.forEach((btn, idx) => {
+        if (idx + 1 === id) {
+          btn.className = "lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-blue-200 bg-blue-50/80 text-blue-900 font-bold";
+        } else {
+          btn.className = "lesson-btn w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between border border-transparent hover:bg-slate-50 text-slate-700";
+        }
+      });
+    }
+
+    function prevLesson() {
+      if (currentLessonIdx > 1) {
+        const prev = lessonsList[currentLessonIdx - 2];
+        selectLesson(prev.id, prev.title, prev.duration);
+      }
+    }
+
+    function nextLesson() {
+      if (currentLessonIdx < lessonsList.length) {
+        const next = lessonsList[currentLessonIdx];
+        selectLesson(next.id, next.title, next.duration);
+      }
+    }
+
+    function markLessonComplete() {
+      alert("Đã ghi nhận hoàn thành bài học!\nTiến trình của bạn đã được cập nhật lên máy chủ.");
+    }
+
+    // 4. Theater Mode (Mở rộng Video)
+    let isTheater = false;
+    function toggleTheaterMode() {
+      isTheater = !isTheater;
+      const sidebar = document.getElementById('curriculum-sidebar');
+      const videoCol = document.getElementById('video-main-column');
+      const theaterText = document.getElementById('theater-text');
+
+      if (isTheater) {
+        sidebar.classList.add('hidden');
+        videoCol.className = "lg:col-span-12 space-y-6";
+        theaterText.textContent = "Thu gọn Video";
+      } else {
+        sidebar.classList.remove('hidden');
+        videoCol.className = "lg:col-span-8 space-y-6";
+        theaterText.textContent = "Mở rộng Video";
+      }
+    }
+
+    // 5. Lesson Sub-tabs (Overview / Kits / QA / Review)
+    function switchLessonSubTab(tabKey) {
+      const tabs = ['desc', 'kits', 'qa', 'review'];
+      tabs.forEach(t => {
+        const elContent = document.getElementById(`subtab-content-${t}`);
+        const elBtn = document.getElementById(`subtab-btn-${t}`);
+        if (t === tabKey) {
+          elContent.classList.remove('hidden');
+          elBtn.className = "px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 font-bold";
+        } else {
+          elContent.classList.add('hidden');
+          elBtn.className = "px-3.5 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium";
+        }
+      });
+    }
+
+    // 6. Exam Timer Countdown
+    let secondsLeft = 1785;
+    setInterval(() => {
+      if (secondsLeft > 0) {
+        secondsLeft--;
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        const timerEl = document.getElementById('exam-timer');
+        if (timerEl) {
+          timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+      }
+    }, 1000);
+
+    function submitExamSim() {
+      document.getElementById('exam-result-modal').classList.remove('hidden');
+    }
+
+    function closeExamSimModal() {
+      document.getElementById('exam-result-modal').classList.add('hidden');
+    }
+
+    // 7. DRM Lock Test
+    function testDrmLockPopup() {
+      document.getElementById('drm-lock-modal').classList.remove('hidden');
+    }
+
+    function closeDrmLockPopup() {
+      document.getElementById('drm-lock-modal').classList.add('hidden');
+    }
+
+    // 8. Test Payment Success
+    function testPaymentSuccess() {
+      alert("Giao dịch thanh toán thành công!\nPopup tự động kích hoạt: ĐÃ THÊM KHÓA HỌC VÀO TÀI KHOẢN (Chuyển hướng về 'Khóa học của tôi').");
+    }
+
+    // 9. ScrollSpy for TOC
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('main section');
+      const navLinks = document.querySelectorAll('aside nav a');
+      let currentSection = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.pageYOffset >= sectionTop) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${currentSection}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
