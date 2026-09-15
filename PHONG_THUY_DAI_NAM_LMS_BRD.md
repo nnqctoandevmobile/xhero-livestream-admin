@@ -1,9 +1,9 @@
 # TÀI LIỆU ĐẶC TẢ YÊU CẦU NGHIỆP VỤ & KIẾN TRÚC HỆ THỐNG (BRD & SYSTEM ARCHITECTURE)
-## DỰ ÁN: NỀN TẢNG ĐÀO TẠO & KHẢO THÍ HUYỀN HỌC TRỰC TUYẾN - PHONG THỦY ĐẠI NAM (LMS REBUILD)
+## DỰ ÁN: NỀN TẢNG ĐÀO TẠO & KHẢO THÍ HUYỀN HỌC TRỰC TIẾP - PHONG THỦY ĐẠI NAM (LMS REBUILD)
 **Đơn vị chủ quản:** Viện Phong Thủy Khoa Học Toàn Cầu - Phong Thủy Đại Nam  
 **Mục tiêu dự án:** Tái cấu trúc và nâng cấp toàn diện (Rebuild) nền tảng đào tạo trực tuyến [https://daotao.phongthuydainam.vn/vi](https://daotao.phongthuydainam.vn/vi)  
-**Tài liệu tham chiếu:** Bộ thiết kế Figma 69 màn hình chi tiết, hệ thống nhận diện thương hiệu Cổ học Phương Đông & Phong Thủy Chính Tông  
-**Chuyên viên phân tích nghiệp vụ (Lead BA):** Nguyễn Quốc Toàn  
+**Tài liệu tham chiếu:** Hệ thống nhận diện thương hiệu & quy chuẩn đào tạo Phong Thủy Huyền Học Đại Nam  
+**Chuyên viên phân tích nghiệp vụ (Lead/Writer):** Nguyễn Quốc Toàn  
 **Phiên bản:** v2.0 - Rebuild Release  
 **Ngày phát hành:** 11/09/2026  
 
@@ -36,15 +36,15 @@
 ## 1. TỔNG QUAN DỰ ÁN & MỤC TIÊU TÁI CẤU TRÚC
 
 ### 1.1. Bối cảnh
-Phong Thủy Đại Nam trực thuộc Viện Nghiên Cứu và Ứng Dụng Tiềm Năng Con Người là tổ chức đào tạo và tư vấn Phong thủy cổ học chính tông hàng đầu tại Việt Nam. Nền tảng LMS hiện tại (phiên bản 1.0 đang vận hành tại `https://daotao.phongthuydainam.vn/vi`) gặp một số hạn chế:
-- Trải nghiệm giao diện chưa đồng bộ và chưa toát lên được tinh thần Huyền học Cổ phong trang nhã và hoàng gia.
+Phong Thủy Đại Nam trực thuộc Viện Nghiên Cứu và Ứng Dụng Tiềm Năng Con Người là tổ chức đào tạo và tư vấn Phong thủy huyền học hàng đầu tại Việt Nam. Nền tảng LMS hiện tại (phiên bản 1.0 đang vận hành tại `https://daotao.phongthuydainam.vn/vi`) gặp một số hạn chế:
+- Trải nghiệm giao diện chưa tối ưu, thiếu tính minh bạch và bố cục chưa thật sự dễ nhìn, thuận tiện cho việc học tập.
 - Động cơ khảo thí (Exam Engine) đơn điệu, chỉ hỗ trợ trắc nghiệm cơ bản, chưa đáp ứng được các bài thi đặc thù phong thủy (như nhận diện mặt bằng, phân cung điểm hướng, kéo thả vật phẩm hóa giải, nối phương vị bát quái).
 - Chưa có cơ chế Gamification gắn liền với lộ trình thăng bậc học thuật (Học Viên ➔ Chuyên Gia ➔ Thầy Phong Thủy ➔ Phong Thủy Sư).
 - Thiếu hệ thống quản lý bản quyền bài giảng và kiểm soát phiên đăng nhập chống chia sẻ tài khoản.
 - Chưa tối ưu luồng mua sắm tích hợp: Bán khóa học trực tuyến kèm Hộp Dụng cụ thực hành (Thước lập cực, Sổ tay Đại Đạo Chí Giản, Bút 3 màu).
 
 ### 1.2. Mục tiêu Rebuild (Phiên bản 2.0)
-1. **Trải nghiệm thị giác Độc bản (Aesthetic WOW):** Thiết kế đậm chất Đông phương Cổ phong kết hợp hơi thở hiện đại (Dark luxury palette kết hợp màu Vàng Hoàng Kim, Nâu Gỗ Trầm, Đỏ Son Cung Đình và Thư Họa Thư Pháp).
+1. **Giao diện Minh Bạch, Dễ Nhìn & Tối Ưu Trải Nghiệm (UX):** Thiết kế giao diện minh bạch, tinh gọn, bố cục khoa học, dễ nhìn, nâng cao sự trải nghiệm của học viên cùng với hiệu suất tải trang và xử lý tác vụ vượt trội.
 2. **Đa dạng hóa 8 hình thức khảo thí:** Đột phá với trắc nghiệm hình ảnh phong thủy, nối cặp Bát quái, kéo thả vật phẩm vào sơ đồ nhà ở, đọc hiểu thư tịch cổ, điền khuyết và tự luận luận đoán cát hung.
 3. **Bảo mật DRM & Chống gian lận:** Giới hạn đăng nhập đồng thời tối đa 3 thiết bị, gắn Watermark động chứa User ID/SĐT trên video bài giảng, mã hóa luồng phát trực tuyến.
 4. **Hệ thống Thăng hạng & Gamification Bảng Xếp Hạng Rồng Vàng:** Vinh danh học viên xuất sắc trên bục Podium Top 1-2-3, cấp chứng chỉ điện tử có mã QR tra cứu tính xác thực toàn cầu.
@@ -135,7 +135,7 @@ Phong Thủy Đại Nam trực thuộc Viện Nghiên Cứu và Ứng Dụng Ti�
 
 #### [REQ-CAT-02] Nút Floating Rồng Vàng - Xem Lộ trình Đào tạo (Learning Roadmap)
 - Nút nổi (Floating Action Button) huy hiệu Rồng Vàng luôn hiện diện góc dưới bên phải trang danh mục khóa học với tooltip: *"Nhấn vào để xem lộ trình đào tạo"*.
-- Khi click: Mở Modal/Drawer toàn màn hình hiển thị cây gia phả học thuật từ khởi nguồn sơ cơ đến đẳng cấp Phong Thủy Sư chân truyền.
+- Khi click: Mở Modal/Drawer toàn màn hình hiển thị cây gia phả học thuật từ khởi nguồn sơ cơ đến cấp bậc Phong Thủy Sư chân truyền.
 
 #### [REQ-CAT-03] Trang Khóa học Sắp Ra Mắt (Course Countdown Page)
 - Dành cho các khóa học đặc biệt được mở theo thời vận/tiết khí phong thủy.
@@ -176,20 +176,44 @@ Phong Thủy Đại Nam trực thuộc Viện Nghiên Cứu và Ứng Dụng Ti�
 
 ---
 
-### 3.4. Phân hệ Trình phát Video Học tập & Quản lý Tiến độ (Interactive Video Player)
+### 3.4. Phân hệ Trình phát Video Học tập & Quản lý Tiến độ (Netflix-Grade LMS Player & DRM Security)
 
-#### [REQ-LMS-01] Giao diện Trình phát Video Đa chế độ
+#### [REQ-LMS-01] Giao diện Trình phát Video Đa chế độ & Trải nghiệm Chuẩn Netflix (Netflix-Grade UX)
 - **Chế độ Tiêu chuẩn (Standard Layout):** Cột danh sách bài giảng nằm bên trái, khung phát video ở trung tâm.
-- **Chế độ Mở rộng (Theater / Full-width Mode):** Tự động ẩn thanh bên để phóng đại khung hình bài giảng, giúp học viên tập trung cao độ vào việc phân tích sơ đồ bát quái và trạch đất.
-- **Cụm điều hướng chân trang:** `Quay lại trang khóa học` | `◄ Bài trước` | `Vị trí bài: 02/10` | `Bài sau ►` | `Mở danh sách Bài học & Tài liệu`.
+- **Chế độ Mở rộng (Theater / Full-width Mode):** Tự động ẩn thanh bên để phóng đại khung hình bài giảng, giúp học viên tập trung cao độ vào việc phân tích sơ đồ bát quái, La kinh và trạch đất.
+- **Bộ điều khiển chuẩn Netflix:**
+  - Nút Tua lùi 10 giây (`↺ 10s`) và Tua tới 10 giây (`↻ 10s`) có hiệu ứng biểu tượng pop-up tròn (Ripple Badge) trực quan giữa màn hình.
+  - Thanh tiến trình mượt mà (Scrubber) tích hợp thanh hiển thị bộ đệm tải trước (**Buffer Ahead Bar**) và thẻ xem trước khung hình (**Thumbnail Preview Card**) khi rê chuột dọc theo trục thời gian.
+  - Điều chỉnh tốc độ học từ **0.5x, 0.75x, 1.0x, 1.25x, 1.5x đến 2.0x** tích hợp công nghệ **Pitch Correction (Bảo toàn âm vực)** qua Web Audio API, giúp giữ nguyên chất giọng trầm ấm, uy nghiêm của giảng viên ThS. Nguyễn Trọng Mạnh, không bị méo tiếng the thé.
+  - Bộ phím tắt điều khiển tiện dụng: `Space` (Phát/Tạm dừng), `← / →` (Tua +/-10s), `↑ / ↓` (Tăng/Giảm âm lượng), `M` (Bật/Tắt tiếng), `F` (Toàn màn hình), `T` (Chế độ rạp phim).
 
-#### [REQ-LMS-02] Cơ chế Bảo vệ Bản quyền Kỹ thuật số (Dynamic Watermarking)
-- Khi phát video bài giảng, hệ thống tự động hiển thị Watermark mờ chạy ngẫu nhiên trên màn hình với tần suất 30s/lần.
-- Nội dung Watermark: `User ID - Họ tên - Số điện thoại học viên`. Ngăn chặn hoàn toàn hành vi quay màn hình phát tán lậu.
+#### [REQ-LMS-02] Hệ thống Thủy ấn Động Đa tầng "Chạy Chạy" Chống Quay Lén & Chụp Màn Hình (Dynamic Bouncing Watermark DRM)
+- **Cấu trúc chuỗi định danh học viên:**
+  `[Mã Học Viên] • [Họ Tên Học Viên] • [Số Điện Thoại Người Xem] • [Địa Chỉ IP Client] • [Timestamp]`
+  *(Ví dụ hiển thị: `HV-88392 • NGUYỄN VĂN A • 0909.123.456 • 113.161.45.12`).*
+- **Thuật toán chuyển động "Chạy Chạy" (Dynamic Bouncing Vector):**
+  - Watermark chuyển động liên tục, mượt mà khắp 4 góc và trung tâm video dựa trên thuật toán phản xạ vector 2D kết hợp đổi góc nghiêng ngẫu nhiên (-3° đến +3°).
+  - Không bao giờ dừng cố định một vị trí, triệt tiêu hoàn toàn khả năng kẻ gian cắt xén góc (crop viền) hoặc dùng logo/sticker đè che thông tin truy vết.
+- **Cân bằng độ mờ quang học (Smart Dynamic Opacity):**
+  - Độ mờ bán trong suốt từ **18% đến 32%** đi kèm viền bóng mờ (Drop Shadow), đảm bảo camera điện thoại hoặc app quay màn hình luôn thu được rõ Họ tên và SĐT của kẻ làm lộ bài giảng, trong khi mắt học viên vẫn quan sát rõ nét 100% từng phân cung trên Thước Lập Cực.
+- **Thủy ấn Vô hình (Forensic Invisible Watermark):**
+  - Nhúng mã nhận diện ẩn vào dữ liệu tần số màu sắc từng khung hình bài giảng qua Canvas DRM. Dù dùng phần mềm AI xóa watermark nổi, bản quyền vẫn được bóc tách và phục hồi nguyên vẹn khi phân tích video rò rỉ.
 
-#### [REQ-LMS-03] Tự động Ghi nhận Tiến trình Học tập (Auto-tracking Progress)
+#### [REQ-LMS-03] Kiến trúc Video Streaming Chuẩn Netflix & Chống Giật Lag (Adaptive Bitrate Streaming - ABR)
+- **Chuẩn mã hóa luồng phân đoạn:** Video bài giảng được chia nhỏ thành các đoạn từ 2 đến 4 giây định dạng HLS (.m3u8/.ts) và MPEG-DASH (.mpd) mã hóa AES-128.
+- **Cơ chế chuyển Bitrate thích ứng (ABR):** Trình phát liên tục đo tốc độ mạng thực tế của học viên để tự động nhảy mượt mà giữa các độ phân giải: **1080p FHD 60fps (4,500 Kbps) ➔ 720p HD (2,200 Kbps) ➔ 480p SD (900 Kbps) ➔ 360p (450 Kbps)** với độ trễ 0s, triệt tiêu hiện tượng đứng hình (Buffer Stall).
+- **Bộ đệm tải trước an toàn (Buffer Ahead 30s - 60s):** Luôn nạp trước dữ liệu bài giảng từ 30 đến 60 giây, giúp người học khi tua hoặc mạng chập chờn vẫn theo dõi liền mạch.
+- **Phân phối Cận biên (Multi-CDN Edge Delivery):** Định tuyến tự động về các nút mạng CDN nội địa hàng đầu tại Việt Nam (Viettel IDC, VNPT, FPT, Cloudflare Edge) với Time-To-First-Frame &lt; 350ms, xem ngay lập tức không cần chờ vòng xoay tải trang.
+
+#### [REQ-LMS-04] Lá Chắn Bản Quyền Đa Tầng Chống Can Thiệp (DRM Anti-Tamper Shield)
+- **Giám sát DOM MutationObserver:** Lắng nghe liên tục trên trình duyệt. Nếu học viên mở F12/Inspect DevTools cố ý xóa thẻ watermark, đổi `opacity: 0` hay `display: none`, player lập tức ngắt luồng video, kích hoạt màn hình đen bảo mật (**DRM Blackout Overlay**) và khóa phiên học khẩn cấp.
+- **Bắt Screen Capture API:** Tự động phát hiện khi hệ điều hành kích hoạt chức năng chụp/ghi màn hình (OBS Studio, QuickTime, extension) để làm đen màn hình phát video.
+- **Signed URL có hạn 60 giây:** Link luồng dữ liệu được ký mã hóa tokenized dynamic URL, chống hành vi copy link ném vào IDM, Cốc Cốc, FDM.
+
+#### [REQ-LMS-05] Tự động Ghi nhận Tiến trình & Ghi nhớ Điểm Dừng (Progress Tracking & Resume Playback)
 - Video player kích hoạt API heartbeat mỗi 10 giây lưu lại `current_playback_time`.
 - Khi thời lượng xem đạt **tối thiểu 85%** tổng thời lượng video, hệ thống tự động đánh dấu bài học sang trạng thái `Hoàn thành` (Completed) và mở khóa bài học tiếp theo.
+- **Resume Playback chính xác từng giây:** Ghi nhớ điểm dừng chính xác của học viên trên cơ sở dữ liệu. Khi học viên chuyển từ điện thoại sang máy tính, hệ thống tự động tiếp tục phát đúng mốc thời gian đang học dở.
 
 ---
 
@@ -510,7 +534,7 @@ sequenceDiagram
 
 | Hạng mục | Tiêu chí Nghiệm thu (Acceptance Criteria) | Mức độ Ưu tiên |
 | :--- | :--- | :---: |
-| **Giao diện & Mỹ thuật** | Chuẩn 100% theo 69 ảnh Figma, phong cách Dark Gold Cổ học Phương Đông, cuộn thư trang nhã. | P0 |
+| **Giao diện & Mỹ thuật** | Giao diện minh bạch, dễ nhìn, trực quan, nâng cao trải nghiệm học tập và đạt hiệu suất cao (Lighthouse > 90). | P0 |
 | **Xác thực & DRM** | Đăng nhập QR XheroApp thành công, OTP 120s mượt mà, chặn thiết bị thứ 4 chuẩn xác. | P0 |
 | **Động cơ Thi cử** | Vận hành trơn tru cả 8 dạng câu hỏi, tính giờ chính xác, nộp bài tự động, đối chiếu đáp án rõ ràng. | P0 |
 | **Thanh toán & Kích hoạt** | Thanh toán MoMo QR, Chuyển khoản tự động ACB, mã kích hoạt khóa học hoạt động 100%. | P0 |

@@ -34,6 +34,10 @@ const sidebarMenu = [
   {
     text: 'Thống kê',
     value: 'statistics',
+  },
+  {
+    text: 'Cấu hình chung',
+    value: 'systemConfig',
   }
 ];
 

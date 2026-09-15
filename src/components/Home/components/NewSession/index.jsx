@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DatePicker, ConfigProvider, theme } from 'antd';
+import { DatePicker, ConfigProvider, theme, message } from 'antd';
 import dayjs from 'dayjs';
 import images from '../../../../config/images';
 import FileUploadSection from '../components/FileUploadSection';
@@ -19,6 +19,7 @@ export default function NewSession() {
     title: '',
     hostName: '',
     startTime: '',
+    estDuration: 120,
     bannerFile: null,
     bannerFit: 'cover',
     videoUrl: '',
@@ -36,8 +37,48 @@ export default function NewSession() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const audioRef = useRef(null);
+  const [activeHosts, setActiveHosts] = useState([]);
+  const [durationOptions, setDurationOptions] = useState(['60', '120', '180', '240']);
+  const [selectedDurationOption, setSelectedDurationOption] = useState('120');
+  const [customDuration, setCustomDuration] = useState('');
 
   const adminPanelService = new AdminPanelService();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('xhero_live_system_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.hosts) {
+          const activeOnly = parsed.hosts.filter(h => h.status === 'Active');
+          setActiveHosts(activeOnly);
+          if (activeOnly.length > 0) {
+            setFormData(prev => ({ ...prev, hostName: activeOnly[0].name }));
+          }
+        }
+        if (parsed.stream && parsed.stream.durations) {
+          const streamDurations = parsed.stream.durations;
+          setDurationOptions(streamDurations);
+          if (streamDurations.includes('120')) {
+            setSelectedDurationOption('120');
+            setFormData(prev => ({ ...prev, estDuration: 120 }));
+          } else if (streamDurations.length > 0) {
+            setSelectedDurationOption(streamDurations[0]);
+            setFormData(prev => ({ ...prev, estDuration: parseInt(streamDurations[0]) }));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse system config hosts', e);
+      }
+    } else {
+      const defaultActiveOnly = [
+        { id: 'host1', name: 'Nguyễn Quốc Toàn', role: 'Host chính' },
+        { id: 'host2', name: 'Trần Minh Hoàng', role: 'Host phụ' }
+      ];
+      setActiveHosts(defaultActiveOnly);
+      setFormData(prev => ({ ...prev, hostName: defaultActiveOnly[0].name }));
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -119,10 +160,16 @@ export default function NewSession() {
     const isValidTitle = validateField('title', formData.title);
     const isValidHost = validateField('hostName', formData.hostName);
     const isValidTime = validateField('startTime', formData.startTime);
+    const isValidDuration = selectedDurationOption !== 'custom' || formData.estDuration > 0;
 
-    if (isValidTitle && isValidHost && isValidTime) {
-      console.log('Form data ready to submit:', formData);
+    if (!isValidTitle || !isValidHost || !isValidTime || !isValidDuration) {
+      if (!isValidDuration) {
+        message.error('Vui lòng nhập thời lượng phát sóng hợp lệ.');
+      }
+      return;
     }
+
+    console.log('Form data ready to submit:', formData);
 
     let payload = {
       title: formData.notifyTitle,
@@ -186,14 +233,19 @@ export default function NewSession() {
                           <label className="block text-sm text-[#7E8CA8] mb-1">
                             Tên Host <span className="text-red-500">*</span>
                           </label>
-                          <input
-                            type="text"
+                          <select
                             name="hostName"
                             value={formData.hostName}
                             onChange={handleChange}
-                            placeholder="Nhập tên người chủ trì"
-                            className={`w-full bg-[#151D2C] border ${errors.hostName ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors`}
-                          />
+                            className={`w-full bg-[#151D2C] border ${errors.hostName ? 'border-red-500' : 'border-[#2A3441] focus:border-[#3B82F6]'} rounded-lg px-4 py-2.5 text-white outline-none transition-colors cursor-pointer`}
+                          >
+                            <option value="">-- Chọn Host chủ trì --</option>
+                            {activeHosts.map(host => (
+                              <option key={host.id} value={host.name}>
+                                {host.name} ({host.role})
+                              </option>
+                            ))}
+                          </select>
                           {errors.hostName && <span className="text-red-500 text-xs mt-1 block">{errors.hostName}</span>}
                         </div>
                         <div>
@@ -229,6 +281,58 @@ export default function NewSession() {
                           </ConfigProvider>
                           {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
                         </div>
+                      </div>
+
+                      {/* Nhóm 1.1: Thời lượng phát sóng */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-[#7E8CA8] mb-1">
+                            Thời lượng phát sóng dự kiến
+                          </label>
+                          <select
+                            value={selectedDurationOption}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSelectedDurationOption(val);
+                              if (val === 'custom') {
+                                setFormData(prev => ({ ...prev, estDuration: parseInt(customDuration) || 0 }));
+                              } else {
+                                setFormData(prev => ({ ...prev, estDuration: parseInt(val) }));
+                              }
+                            }}
+                            className="w-full bg-[#151D2C] border border-[#2A3441] focus:border-[#3B82F6] rounded-lg px-4 py-2.5 text-white outline-none transition-colors cursor-pointer"
+                          >
+                            {durationOptions.map(opt => (
+                              <option key={opt} value={opt}>
+                                {opt} phút
+                              </option>
+                            ))}
+                            <option value="custom">Khác (Nhập tùy ý)...</option>
+                          </select>
+                        </div>
+
+                        {selectedDurationOption === 'custom' && (
+                          <div className="animate-in fade-in duration-200">
+                            <label className="block text-sm text-[#7E8CA8] mb-1">
+                              Nhập thời lượng phát sóng (phút) <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={customDuration}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCustomDuration(val);
+                                setFormData(prev => ({ ...prev, estDuration: parseInt(val) || 0 }));
+                              }}
+                              placeholder="Ví dụ: 90"
+                              className="w-full bg-[#151D2C] border border-[#2A3441] focus:border-[#3B82F6] rounded-lg px-4 py-2.5 text-white outline-none transition-colors"
+                            />
+                            {!formData.estDuration && (
+                              <span className="text-red-500 text-xs mt-1 block">Vui lòng nhập số phút hợp lệ</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

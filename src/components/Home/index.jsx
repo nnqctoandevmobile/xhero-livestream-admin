@@ -11,6 +11,7 @@ import NewSession from './components/NewSession';
 import ConsultingForms from './components/ConsultingForms';
 import Statistics from './components/Statistics';
 import VideoPlayback from './components/VideoPlayback';
+import SystemConfig from './components/SystemConfig';
 import { SESSION_STATUS } from '../../core/constants';
 import { useIsMobile } from '../../hook/useMediaQuery';
 
@@ -164,6 +165,9 @@ export default function Home() {
               selectedRoomId={selectedRoomId}
               setSelectedRoomId={setSelectedRoomId}
             />
+          )}
+          {tab === 'systemConfig' && (
+            <SystemConfig />
           )}
         </main>
       </div>
